@@ -1,12 +1,12 @@
 import { Group as KonvaGroup, Rect } from 'react-konva';
 import { Text as KonvaText } from 'react-konva';
 
-import { Visible } from '../../../components/Visible';
 import { CControlStashMemoryConfig } from '../../config/CControlStashMemoryConfig';
 import { CseMachine } from '../../CseMachine';
+import { CVisible } from '../../CVisible';
 import { Text } from '../ui/Text';
 
-export class MemoryRow extends Visible {
+export class MemoryRow extends CVisible {
   address: number = 0;
   bytes: Uint8Array;
 

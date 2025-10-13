@@ -2,15 +2,15 @@ import React from 'react';
 import { Group } from 'react-konva';
 import { Stash as CStash, StashItem as CStashItem } from 'src/ctowasm/dist';
 
-import { Visible } from '../../../components/Visible';
 import { defaultTextColor } from '../../../CseMachineUtils';
 import { CControlStashMemoryConfig } from '../../config/CControlStashMemoryConfig';
 import { CseMachine } from '../../CseMachine';
+import { CVisible } from '../../CVisible';
 // import { Method } from './Method';
 import { StashItem } from './StashItem';
 // import { Variable } from './Variable';
 
-export class Stash extends Visible {
+export class Stash extends CVisible {
   private readonly _stashItems: StashItem[] = [];
 
   constructor(stash: CStash) {

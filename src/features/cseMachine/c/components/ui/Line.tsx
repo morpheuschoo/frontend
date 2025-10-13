@@ -1,11 +1,11 @@
 import { Group as KonvaGroup, Path as KonvaPath } from 'react-konva';
 
-import { Visible } from '../../../components/Visible';
 import { defaultStrokeColor } from '../../../CseMachineUtils';
 import { CConfig, ShapeDefaultProps } from '../../config/CCSEMachineConfig';
 import { CseMachine } from '../../CseMachine';
+import { CVisible } from '../../CVisible';
 
-export class Line extends Visible {
+export class Line extends CVisible {
   private readonly _points: number[] = [];
 
   constructor(fromX: number, fromY: number, toX: number, toY: number) {

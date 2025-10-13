@@ -2,12 +2,12 @@ import { Group as KonvaGroup, Rect } from 'react-konva';
 import { Text as KonvaText } from 'react-konva';
 import { Memory as CMemory, StackFrame } from 'src/ctowasm/dist';
 
-import { Visible } from '../../../components/Visible';
 import { CControlStashMemoryConfig } from '../../config/CControlStashMemoryConfig';
 import { CseMachine } from '../../CseMachine';
+import { CVisible } from '../../CVisible';
 import { MemoryRow } from './MemoryRow';
 
-export class MemoryStackFrame extends Visible {
+export class MemoryStackFrame extends CVisible {
   public frame: StackFrame;
   public memory: CMemory;
   public byteRows: MemoryRow[];

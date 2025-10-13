@@ -2,14 +2,14 @@ import React from 'react';
 import { Group, Rect } from 'react-konva';
 import { Memory as CMemory, StackFrame } from 'src/ctowasm/dist';
 
-import { Visible } from '../../../components/Visible';
 import { defaultTextColor } from '../../../CseMachineUtils';
 import { CControlStashMemoryConfig } from '../../config/CControlStashMemoryConfig';
 import { CConfig, ShapeDefaultProps } from '../../config/CCSEMachineConfig';
 import { CseMachine } from '../../CseMachine';
+import { CVisible } from '../../CVisible';
 import { MemoryStackFrame } from './MemoryStackFrame';
 
-export class Memory extends Visible {
+export class Memory extends CVisible {
   textProps = {
     fill: defaultTextColor(),
     padding: CControlStashMemoryConfig.ControlItemTextPadding,
@@ -41,7 +41,7 @@ export class Memory extends Visible {
     this._width = CControlStashMemoryConfig.memoryRowWidth;
     let currentY = this._y;
 
-    this.frames = [...frames].reverse().map(frame => {
+    this.frames = [...frames].map(frame => {
       const newMemoryStackFrame = new MemoryStackFrame(this._x, currentY, this.memory, frame);
       currentY += newMemoryStackFrame.height();
       return newMemoryStackFrame;

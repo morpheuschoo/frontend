@@ -1,9 +1,9 @@
 import React from 'react';
 
-import { Visible } from '../../../components/Visible';
 import { CseMachine } from '../../CseMachine';
+import { CVisible } from '../../CVisible';
 
-export class MemorySegment extends Visible {
+export class MemorySegment extends CVisible {
   leftPointer: integer;
   rightPointer: integer;
 

@@ -1,15 +1,15 @@
 import { Group } from 'react-konva';
 import { StackFrame } from 'src/ctowasm/dist';
 
-import { Visible } from '../../../components/Visible';
 import { Line } from '../../../java/components/Line';
 import { Obj } from '../../../java/components/Object';
 import { CControlStashMemoryConfig } from '../../config/CControlStashMemoryConfig';
 import { CConfig } from '../../config/CCSEMachineConfig';
 import { CseMachine } from '../../CseMachine';
+import { CVisible } from '../../CVisible';
 import { Frame } from './Frame';
 
-export class Environment extends Visible {
+export class Environment extends CVisible {
   private readonly _methodFrames: Frame[] = [];
   private readonly _objects: Obj[] = [];
   private readonly _classFrames: Frame[] = [];

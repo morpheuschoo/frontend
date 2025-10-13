@@ -5,13 +5,13 @@ import {
   controlItemToString
 } from 'src/ctowasm/dist';
 
-import { Visible } from '../../../components/Visible';
 import { defaultActiveColor, defaultStrokeColor } from '../../../CseMachineUtils';
 import { CControlStashMemoryConfig } from '../../config/CControlStashMemoryConfig';
 import { CseMachine } from '../../CseMachine';
+import { CVisible } from '../../CVisible';
 import { ControlItem } from './ControlItem';
 
-export class Control extends Visible {
+export class Control extends CVisible {
   private readonly _controlItems: ControlItem[] = [];
 
   isEmpty(): boolean {
@@ -20,8 +20,6 @@ export class Control extends Visible {
 
   constructor(control: CControl) {
     super();
-
-    console.log('PASSED', control);
 
     // Position.
     this._x = CControlStashMemoryConfig.ControlPosX;
