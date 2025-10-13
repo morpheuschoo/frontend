@@ -3,7 +3,6 @@ import React, { RefObject } from 'react';
 import { Group, Label, Rect, Tag, Text as KonvaText } from 'react-konva';
 import { StackFrame } from 'src/ctowasm/dist';
 
-import { Visible } from '../../../components/Visible';
 import { IHoverable } from '../../../CseMachineTypes';
 import { defaultTextColor, setHoveredCursor, setUnhoveredCursor } from '../../../CseMachineUtils';
 import { Arrow } from '../../../java/components/Arrow';
