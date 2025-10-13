@@ -5,6 +5,7 @@ import { Memory as CMemory, StackFrame } from 'src/ctowasm/dist';
 import { CControlStashMemoryConfig } from '../../config/CControlStashMemoryConfig';
 import { CseMachine } from '../../CseMachine';
 import { CVisible } from '../../CVisible';
+import { topToBottom } from '../../utils';
 import { MemoryRow } from './MemoryRow';
 
 export class MemoryStackFrame extends CVisible {
@@ -21,13 +22,12 @@ export class MemoryStackFrame extends CVisible {
     this.byteRows = [];
 
     // Loop from bottom to top, from stack pointer to basepointer + size of return
-    let currentY = CControlStashMemoryConfig.memoryRowHeight;
 
     for (let i = frame.stackPointer; i <= frame.basePointer + frame.sizeOfReturn - 3; i += 4) {
-      const newRow = new MemoryRow(i, memory.memory.buffer.slice(i, i + 4), 0, currentY);
+      const newRow = new MemoryRow(i, memory.memory.buffer.slice(i, i + 4), 0, 0);
       this.byteRows.push(newRow);
-      currentY += newRow.height();
     }
+
     this._height = CControlStashMemoryConfig.memoryRowHeight;
     this.byteRows.forEach(row => (this._height += row.height()));
   }
@@ -61,7 +61,7 @@ export class MemoryStackFrame extends CVisible {
         </KonvaGroup>
 
         {/* Memory segment */}
-        <KonvaGroup>{this.byteRows.map(row => row.draw())}</KonvaGroup>
+        <KonvaGroup y={CControlStashMemoryConfig.memoryRowHeight}>{topToBottom(this.byteRows).map(row => row.draw())}</KonvaGroup>
       </KonvaGroup>
     );
   }
