@@ -7,8 +7,8 @@ import { CVisible } from '../../CVisible';
 import { Text } from '../ui/Text';
 
 export class MemoryRow extends CVisible {
-  address: number = 0;
-  bytes: Uint8Array;
+  private readonly address: number = 0;
+  private readonly bytes: Uint8Array;
 
   constructor(address: number, bytes: ArrayBuffer, x: number, y: number) {
     super();
@@ -16,6 +16,7 @@ export class MemoryRow extends CVisible {
     this._y = y;
     this.address = address;
     this.bytes = new Uint8Array(bytes);
+
     this._height = CControlStashMemoryConfig.memoryRowHeight;
     this._width = CControlStashMemoryConfig.memoryRowWidth;
     console.log(this.bytes);
@@ -25,6 +26,7 @@ export class MemoryRow extends CVisible {
     const padding = CControlStashMemoryConfig.byteBoxPadding;
     const addressText = new Text(
       `0x${this.address.toString(16).padStart(2, '0').toUpperCase()}`,
+      "#4A5565",
       this.x() + padding,
       this.y() + 5,
     );
@@ -37,34 +39,41 @@ export class MemoryRow extends CVisible {
 
     return (
       <KonvaGroup key={CseMachine.key++}>
-      {/* address */}
-      {addressText.draw()}
+        <Rect 
+          x={this.x()}
+          y={this.y()}
+          width={this.width()}
+          height={this.height()}
+        />
+        {/* address */}
+        {addressText.draw()}
 
-      {/* byte boxes */}
-      {Array.from(this.bytes).map((value: number, index: number) => (
-        <KonvaGroup
-        key={CseMachine.key++}
-        x={byteBoxesStartX + index * (CControlStashMemoryConfig.byteBoxWidth + padding)}
-        y={this.y()}
-        >
-        <Rect
-          width={CControlStashMemoryConfig.byteBoxWidth}
-          height={CControlStashMemoryConfig.byteBoxHeight}
-          stroke="white"
-          strokeWidth={1}
-          cornerRadius={2}
-        />
-        <KonvaText
-          text={value.toString(16).toUpperCase().padStart(2, '0')}
-          fontSize={CControlStashMemoryConfig.FontSize}
-          fill="white"
-          width={CControlStashMemoryConfig.byteBoxWidth}
-          height={CControlStashMemoryConfig.byteBoxHeight}
-          align="center"
-          verticalAlign="middle"
-        />
-        </KonvaGroup>
-      ))}
+        {/* byte boxes */}
+        {Array.from(this.bytes).map((value: number, index: number) => (
+          <KonvaGroup
+          key={CseMachine.key++}
+          x={byteBoxesStartX + index * (CControlStashMemoryConfig.byteBoxWidth + padding)}
+          y={this.y()}
+          >
+          <Rect
+            width={CControlStashMemoryConfig.byteBoxWidth}
+            height={CControlStashMemoryConfig.byteBoxHeight}
+            stroke={CControlStashMemoryConfig.byteBoxStroke}
+            fill={CControlStashMemoryConfig.byteBoxFill}
+            strokeWidth={1}
+            cornerRadius={2}
+          />
+          <KonvaText
+            text={value.toString(16).toUpperCase().padStart(2, '0')}
+            fontSize={CControlStashMemoryConfig.FontSize}
+            fill={CControlStashMemoryConfig.byteBoxFontColour}
+            width={CControlStashMemoryConfig.byteBoxWidth}
+            height={CControlStashMemoryConfig.byteBoxHeight}
+            align="center"
+            verticalAlign="middle"
+          />
+          </KonvaGroup>
+        ))}
       </KonvaGroup>
     );
   }

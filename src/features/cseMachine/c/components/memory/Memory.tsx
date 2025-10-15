@@ -1,13 +1,15 @@
 import React from 'react';
-import { Group, Rect } from 'react-konva';
+import { Group } from 'react-konva';
 import { Memory as CMemory, StackFrame } from 'src/ctowasm/dist';
 
 import { defaultTextColor } from '../../../CseMachineUtils';
 import { CControlStashMemoryConfig } from '../../config/CControlStashMemoryConfig';
-import { CConfig, ShapeDefaultProps } from '../../config/CCSEMachineConfig';
+import { CConfig } from '../../config/CCSEMachineConfig';
 import { CseMachine } from '../../CseMachine';
 import { CVisible } from '../../CVisible';
-import { MemoryStackFrame } from './MemoryStackFrame';
+import { DataSegmentVis } from '../dataSegment/DataSegmentVis';
+import { HeapVis } from '../heap/HeapVis';
+import { StackVis } from '../Stack/StackVis';
 
 export class Memory extends CVisible {
   textProps = {
@@ -20,12 +22,18 @@ export class Memory extends CVisible {
   };
 
   memory: CMemory;
-  frames: MemoryStackFrame[] = [];
+  private readonly dataSegmentSizeInBytes: number;
+  private readonly stackPointer: number;
+  private readonly basePointer: number;
+  private readonly heapPointer: number;
+
+  private stack: StackVis;
+  private heap: HeapVis;
+  private dataSegment: DataSegmentVis;
 
   constructor(memory: CMemory, frames: StackFrame[]) {
     super();
     this.memory = memory;
-    this.frames = [];
 
     this._x =
       CControlStashMemoryConfig.ControlPosX +
@@ -39,32 +47,34 @@ export class Memory extends CVisible {
       2 * CConfig.CanvasPaddingY;
 
     this._width = CControlStashMemoryConfig.memoryRowWidth;
-    let currentY = this._y;
 
-    this.frames = [...frames].map(frame => {
-      const newMemoryStackFrame = new MemoryStackFrame(this._x, currentY, this.memory, frame);
-      currentY += newMemoryStackFrame.height();
-      return newMemoryStackFrame;
-    });
+    const {
+      dataSegmentSizeInBytes,
+      stackPointer,
+      basePointer,
+      heapPointer
+    } = memory.getPointers();
+    
+    this.dataSegmentSizeInBytes = dataSegmentSizeInBytes;
+    this.stackPointer = stackPointer;
+    this.basePointer = basePointer;
+    this.heapPointer = heapPointer;
 
-    this._height = 1000;
+    this.stack = new StackVis(memory, frames);
+    this.heap = new HeapVis(
+      this.memory.memory.buffer.slice(this.dataSegmentSizeInBytes + 4, this.heapPointer),
+      this.dataSegmentSizeInBytes + 4,
+      this.heapPointer - 1,
+    )
+    this.dataSegment = new DataSegmentVis(this.memory.memory.buffer.slice(0, this.dataSegmentSizeInBytes));
   }
 
   draw(): React.ReactNode {
     return (
       <Group key={CseMachine.key++}>
-        <Rect
-          {...ShapeDefaultProps}
-          x={this.x()}
-          y={this.y()}
-          width={this.width()}
-          height={this.height()}
-          stroke={'#999'}
-          strokeWidth={2}
-          fill="transparent"
-          cornerRadius={Number(CConfig.FrameCornerRadius)}
-        />
-        {this.frames.map(frame => frame.draw())}
+        {this.heap.draw()}
+        {this.stack.draw()}
+        {this.dataSegment.draw()}
       </Group>
     );
   }

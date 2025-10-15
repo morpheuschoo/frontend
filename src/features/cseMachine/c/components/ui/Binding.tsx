@@ -1,6 +1,7 @@
 import React from 'react';
 import { DataType, MemoryAddressEntry, StackFrame } from 'src/ctowasm/dist';
 
+import { defaultTextColor } from '../../../CseMachineUtils';
 import { Arrow } from '../../../java/components/Arrow';
 import { Method } from '../../../java/components/Method';
 import { CConfig } from '../../config/CCSEMachineConfig';
@@ -27,12 +28,13 @@ export class Binding extends CVisible {
     private addressMap: Map<number, { x: number, y: number }>
   ) {
     super();
-    
+
     this._x = x;
     this._y = y;
 
     this._name = new Text(
-      name + CConfig.VariableColon,
+      name + CConfig.VariableColon, // := is part of
+      defaultTextColor(),
       this.x(),
       this.y() + CConfig.FontSize + CConfig.TextPaddingX
     );
