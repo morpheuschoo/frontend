@@ -6,17 +6,17 @@ import {
   Text as KonvaText
 } from 'react-konva';
 
-import { Visible } from '../../../components/Visible';
 import { defaultTextColor, getTextWidth } from '../../../CseMachineUtils';
 import { CControlStashMemoryConfig } from '../../config/CControlStashMemoryConfig';
 import { ShapeDefaultProps } from '../../config/CCSEMachineConfig';
 import { CseMachine } from '../../CseMachine';
+import { CVisible } from '../../CVisible';
 // import { Arrow } from './Arrow';
 // import { Frame } from './Frame';
 // import { Method } from './Method';
 // import { Variable } from './Variable';
 
-export class StashItem extends Visible {
+export class StashItem extends CVisible {
   //   private readonly _arrow: Arrow | undefined;
 
   constructor(
@@ -33,7 +33,8 @@ export class StashItem extends Visible {
 
     // Height and width.
     this._height =
-      CControlStashMemoryConfig.StashItemHeight + CControlStashMemoryConfig.StashItemTextPadding * 2;
+      CControlStashMemoryConfig.StashItemHeight +
+      CControlStashMemoryConfig.StashItemTextPadding * 2;
     this._width = CControlStashMemoryConfig.StashItemTextPadding * 2 + getTextWidth(this._text);
 
     // Arrow

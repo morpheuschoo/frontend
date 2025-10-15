@@ -2,7 +2,6 @@ import { KonvaEventObject } from 'konva/lib/Node';
 import React, { RefObject } from 'react';
 import { Label, Tag, Text } from 'react-konva';
 
-import { Visible } from '../../../components/Visible';
 import { ShapeDefaultProps } from '../../../CseMachineConfig';
 import { IHoverable } from '../../../CseMachineTypes';
 import {
@@ -17,10 +16,11 @@ import {
 } from '../../../CseMachineUtils';
 import { CControlStashMemoryConfig } from '../../config/CControlStashMemoryConfig';
 import { CseMachine } from '../../CseMachine';
+import { CVisible } from '../../CVisible';
 // import { Arrow } from './Arrow';
 // import { Frame } from './Frame';
 
-export class ControlItem extends Visible implements IHoverable {
+export class ControlItem extends CVisible implements IHoverable {
   // private readonly _arrow: Arrow | undefined;
   private readonly _tooltipRef: RefObject<any>;
 

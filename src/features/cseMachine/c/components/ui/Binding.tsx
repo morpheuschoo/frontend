@@ -1,16 +1,16 @@
 import React from 'react';
 import { DataType, MemoryAddressEntry, StackFrame } from 'src/ctowasm/dist';
 
-import { Visible } from '../../../components/Visible';
 import { Arrow } from '../../../java/components/Arrow';
 import { Method } from '../../../java/components/Method';
 import { CConfig } from '../../config/CCSEMachineConfig';
 import { CseMachine } from '../../CseMachine';
+import { CVisible } from '../../CVisible';
 import { Text } from './Text';
 import { Variable } from './Variable';
 
 /** a Binding is a key-value pair in a Frame */
-export class Binding extends Visible {
+export class Binding extends CVisible {
   private readonly _name: Text;
 
   private readonly _value: Variable | Method | Text;

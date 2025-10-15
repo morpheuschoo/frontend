@@ -1,13 +1,13 @@
 import React from 'react';
 import { Group as KonvaGroup, Label as KonvaLabel, Text as KonvaText } from 'react-konva';
 
-import { Visible } from '../../../components/Visible';
 import { defaultTextColor, getTextWidth } from '../../../CseMachineUtils';
 import { CConfig, ShapeDefaultProps } from '../../config/CCSEMachineConfig';
 import { CseMachine } from '../../CseMachine';
+import { CVisible } from '../../CVisible';
 
 /** this class encapsulates a string to be drawn onto the canvas */
-export class Text extends Visible {
+export class Text extends CVisible {
   constructor(
     private readonly _text: string,
     x: number,

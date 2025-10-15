@@ -1,11 +1,11 @@
 import React from 'react';
 import { Group, Rect } from 'react-konva';
 
-import { Visible } from '../../../components/Visible';
 import { defaultTextColor } from '../../../CseMachineUtils';
 import { Arrow } from '../../../java/components/Arrow';
 import { CConfig, ShapeDefaultProps } from '../../config/CCSEMachineConfig';
 import { CseMachine } from '../../CseMachine';
+import { CVisible } from '../../CVisible';
 import { Text } from './Text';
 
 export interface TextOptions {
@@ -26,7 +26,7 @@ export const defaultOptions: TextOptions = {
   isStringIdentifiable: false // if true, contain strings within double quotation marks "". Default is false
 };
 
-export class Variable extends Visible {
+export class Variable extends CVisible {
   private readonly _type: Text;
   private _value: Text | Arrow;
 
@@ -34,7 +34,7 @@ export class Variable extends Visible {
     x: number,
     y: number,
     private readonly _variable: number,
-    dataType: string,
+    dataType: string
   ) {
     super();
 

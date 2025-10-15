@@ -3,7 +3,6 @@ import React, { RefObject } from 'react';
 import { Group, Label, Rect, Tag, Text as KonvaText } from 'react-konva';
 import { StackFrame } from 'src/ctowasm/dist';
 
-import { Visible } from '../../../components/Visible';
 import { IHoverable } from '../../../CseMachineTypes';
 import { defaultTextColor, setHoveredCursor, setUnhoveredCursor } from '../../../CseMachineUtils';
 import { Arrow } from '../../../java/components/Arrow';
@@ -11,10 +10,11 @@ import { Method } from '../../../java/components/Method';
 import { CControlStashMemoryConfig } from '../../config/CControlStashMemoryConfig';
 import { CConfig, ShapeDefaultProps } from '../../config/CCSEMachineConfig';
 import { CseMachine } from '../../CseMachine';
+import { CVisible } from '../../CVisible';
 import { Binding } from '../ui/Binding';
 import { Text } from '../ui/Text';
 
-export class Frame extends Visible implements IHoverable {
+export class Frame extends CVisible implements IHoverable {
   readonly tooltipRef: RefObject<any>;
 
   readonly bindings: Binding[] = [];
