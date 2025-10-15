@@ -265,10 +265,10 @@ export function* evalCodeSaga(
     }
 
     switch (context.chapter) {
-      case Chapter.FULL_C:
+      case Chapter.FULL_C: {
         const { usingCse: isUsingCse } = yield* selectWorkspace('playground');
-
         return call(cCompileAndRun, entrypointCode, context, currentStep, isUsingCse);
+      }
       case Chapter.FULL_JAVA: {
         const {
           usingCse: isUsingCse,

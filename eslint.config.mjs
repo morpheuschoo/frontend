@@ -8,7 +8,7 @@ import tseslint from 'typescript-eslint';
 import reactRefresh from 'eslint-plugin-react-refresh';
 
 export default tseslint.config(
-  { ignores: ['eslint.config.mjs', '**/*.snap'] },
+  { ignores: ['eslint.config.mjs', '**/*.snap', 'node_modules', '**/*.js'] },
   eslint.configs.recommended,
   tseslint.configs.recommended,
   // TODO: Enable when ready
