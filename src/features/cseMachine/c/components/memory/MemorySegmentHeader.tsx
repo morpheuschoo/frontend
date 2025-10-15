@@ -8,7 +8,6 @@ import { CseMachine } from "../../CseMachine";
 import { CVisible } from "../../CVisible";
 
 export class MemorySegmentHeader extends CVisible {
-  private readonly SegmentName: string;
   textProps = {
     fill: defaultTextColor(),
     padding: CControlStashMemoryConfig.ControlItemTextPadding,
@@ -18,9 +17,14 @@ export class MemorySegmentHeader extends CVisible {
     fontVariant: CControlStashMemoryConfig.FontVariant
   };
 
-  constructor(SegmentName: string, x: number, y: number) {
+  constructor(
+    private readonly _segmentName: string, 
+    private readonly _backgroundColour: string, 
+    private readonly _textColour: string,
+    x: number, 
+    y: number, 
+  ) {
     super();
-    this.SegmentName = SegmentName;
     this._x = x;
     this._y = y;
     this._width = CControlStashMemoryConfig.memoryRowWidth;
@@ -38,7 +42,7 @@ export class MemorySegmentHeader extends CVisible {
           height={this.height()}
           stroke={CControlStashMemoryConfig.memoryRowBorderStroke}
           strokeWidth={2}
-          fill="#BEDBFF"
+          fill={this._backgroundColour}
           cornerRadius={Number(CConfig.FrameCornerRadius)}
         />
         <Text
@@ -46,8 +50,8 @@ export class MemorySegmentHeader extends CVisible {
           fontSize={20}
           x={this.x() + CControlStashMemoryConfig.memoryRowPadding}
           y={this.y() + CControlStashMemoryConfig.memoryRowPadding}
-          text={this.SegmentName}
-          stroke={'#193CB8'}
+          text={this._segmentName}
+          stroke={this._textColour}
           strokeWidth={2}
         />
       </Group>

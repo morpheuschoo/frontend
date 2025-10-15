@@ -41,7 +41,14 @@ export class StackVis extends CVisible {
       return newMemoryStackFrame;
     });
     
-    this.header = new MemorySegmentHeader(this.SEGMENT_NAME, 0, 0);
+    this.header = new MemorySegmentHeader(
+      this.SEGMENT_NAME, 
+      CControlStashMemoryConfig.stackHeaderBackgroundColour, 
+      CControlStashMemoryConfig.stackHeaderTextColour, 
+      0, 
+      0
+    );
+
     const { components, totalHeight } = topToBottom<StackFrameVis>([...this.frames], 0, this.header.height());
     this.frames = components;
 
@@ -57,7 +64,7 @@ export class StackVis extends CVisible {
           {...ShapeDefaultProps}
           width={this.width()}
           height={this.height()}
-          stroke={'#DBEAFE'}
+          stroke={CControlStashMemoryConfig.memoryRowBorderStroke}
           strokeWidth={2}
           fill="transparent"
           cornerRadius={CConfig.FrameCornerRadius}

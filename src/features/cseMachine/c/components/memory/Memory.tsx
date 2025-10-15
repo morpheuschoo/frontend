@@ -7,6 +7,8 @@ import { CControlStashMemoryConfig } from '../../config/CControlStashMemoryConfi
 import { CConfig } from '../../config/CCSEMachineConfig';
 import { CseMachine } from '../../CseMachine';
 import { CVisible } from '../../CVisible';
+import { DataSegmentVis } from '../dataSegment/DataSegmentVis';
+import { HeapVis } from '../heap/HeapVis';
 import { StackVis } from '../Stack/StackVis';
 
 export class Memory extends CVisible {
@@ -20,7 +22,14 @@ export class Memory extends CVisible {
   };
 
   memory: CMemory;
-  stack: StackVis;
+  private readonly dataSegmentSizeInBytes: number;
+  private readonly stackPointer: number;
+  private readonly basePointer: number;
+  private readonly heapPointer: number;
+
+  private stack: StackVis;
+  private heap: HeapVis;
+  private dataSegment: DataSegmentVis;
 
   constructor(memory: CMemory, frames: StackFrame[]) {
     super();
@@ -39,13 +48,33 @@ export class Memory extends CVisible {
 
     this._width = CControlStashMemoryConfig.memoryRowWidth;
 
+    const {
+      dataSegmentSizeInBytes,
+      stackPointer,
+      basePointer,
+      heapPointer
+    } = memory.getPointers();
+    
+    this.dataSegmentSizeInBytes = dataSegmentSizeInBytes;
+    this.stackPointer = stackPointer;
+    this.basePointer = basePointer;
+    this.heapPointer = heapPointer;
+
     this.stack = new StackVis(memory, frames);
+    this.heap = new HeapVis(
+      this.memory.memory.buffer.slice(this.dataSegmentSizeInBytes + 4, this.heapPointer),
+      this.dataSegmentSizeInBytes + 4,
+      this.heapPointer - 1,
+    )
+    this.dataSegment = new DataSegmentVis(this.memory.memory.buffer.slice(0, this.dataSegmentSizeInBytes));
   }
 
   draw(): React.ReactNode {
     return (
       <Group key={CseMachine.key++}>
+        {this.heap.draw()}
         {this.stack.draw()}
+        {this.dataSegment.draw()}
       </Group>
     );
   }
