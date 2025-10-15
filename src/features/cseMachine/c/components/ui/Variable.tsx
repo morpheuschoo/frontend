@@ -43,11 +43,12 @@ export class Variable extends CVisible {
     this._y = y;
 
     // Type.
-    this._type = new Text(dataType, this._x, this._y);
+    this._type = new Text(dataType, defaultTextColor(), this._x, this._y);
 
     // Value.
     this._value = new Text(
       this.variable.toString(),
+      defaultTextColor(),
       this._x + CConfig.TextPaddingX,
       this._y + this._type.height() + CConfig.TextPaddingX
     );

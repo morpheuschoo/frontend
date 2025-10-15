@@ -1,6 +1,7 @@
 import React from 'react';
 import { DataType } from 'src/ctowasm/dist';
 
+import { defaultTextColor } from '../../../CseMachineUtils';
 import { Arrow } from '../../../java/components/Arrow';
 import { Method } from '../../../java/components/Method';
 import { CConfig } from '../../config/CCSEMachineConfig';
@@ -26,7 +27,8 @@ export class Binding extends CVisible {
 
     // Name.
     this._name = new Text(
-      name + CConfig.VariableColon, // := is part of name
+      name + CConfig.VariableColon, // := is part of 
+      defaultTextColor(),
       this.x(),
       this.y() + CConfig.FontSize + CConfig.TextPaddingX
     );

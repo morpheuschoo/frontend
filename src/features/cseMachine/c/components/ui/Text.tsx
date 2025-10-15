@@ -1,7 +1,7 @@
 import React from 'react';
 import { Group as KonvaGroup, Label as KonvaLabel, Text as KonvaText } from 'react-konva';
 
-import { defaultTextColor, getTextWidth } from '../../../CseMachineUtils';
+import { getTextWidth } from '../../../CseMachineUtils';
 import { CConfig, ShapeDefaultProps } from '../../config/CCSEMachineConfig';
 import { CseMachine } from '../../CseMachine';
 import { CVisible } from '../../CVisible';
@@ -10,8 +10,10 @@ import { CVisible } from '../../CVisible';
 export class Text extends CVisible {
   constructor(
     private readonly _text: string,
+    private readonly _fontColour: string,
     x: number,
-    y: number
+    y: number,
+    
   ) {
     super();
 
@@ -37,7 +39,7 @@ export class Text extends CVisible {
       fontFamily: CConfig.FontFamily,
       fontSize: CConfig.FontSize,
       fontStyle: CConfig.FontStyle,
-      fill: defaultTextColor()
+      fill: this._fontColour
     };
 
     return (

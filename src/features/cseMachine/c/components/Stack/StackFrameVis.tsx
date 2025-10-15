@@ -3,12 +3,13 @@ import { Text as KonvaText } from 'react-konva';
 import { Memory as CMemory, StackFrame } from 'src/ctowasm/dist';
 
 import { CControlStashMemoryConfig } from '../../config/CControlStashMemoryConfig';
+import { ShapeDefaultProps } from '../../config/CCSEMachineConfig';
 import { CseMachine } from '../../CseMachine';
 import { CVisible } from '../../CVisible';
 import { topToBottom } from '../../utils';
-import { MemoryRow } from './MemoryRow';
+import { MemoryRow } from '../memory/MemoryRow';
 
-export class MemoryStackFrame extends CVisible {
+export class StackFrameVis extends CVisible {
   public frame: StackFrame;
   public memory: CMemory;
   public byteRows: MemoryRow[];
@@ -21,14 +22,13 @@ export class MemoryStackFrame extends CVisible {
     this.frame = frame;
     this.byteRows = [];
 
-    // Loop from bottom to top, from stack pointer to basepointer + size of return
-
     for (let i = frame.stackPointer; i <= frame.basePointer + frame.sizeOfReturn - 3; i += 4) {
-      const newRow = new MemoryRow(i, memory.memory.buffer.slice(i, i + 4), 0, 0);
+      const newRow = 
+        new MemoryRow(i, memory.memory.buffer.slice(i, i + 4), 0, 0, );
       this.byteRows.push(newRow);
     }
-
-    this._height = CControlStashMemoryConfig.memoryRowHeight;
+    this._width = CControlStashMemoryConfig.memoryRowWidth;
+    this._height = CControlStashMemoryConfig.memoryRowHeight + CControlStashMemoryConfig.memoryRowPadding;
     this.byteRows.forEach(row => (this._height += row.height()));
   }
 
@@ -40,19 +40,28 @@ export class MemoryStackFrame extends CVisible {
 
     return (
       <KonvaGroup key={CseMachine.key++} x={this.x()} y={this.y()}>
+        <Rect 
+          {...ShapeDefaultProps}
+          width={this.width()}
+          height={this.height()}
+          stroke={CControlStashMemoryConfig.memoryRowBorderStroke}
+          strokeWidth={2}
+          fill="transparent"
+        />
         {/* function name */}
         <KonvaGroup key={CseMachine.key++}>
           <Rect
             key={CseMachine.key++}
             height={CControlStashMemoryConfig.memoryRowHeight}
             width={CControlStashMemoryConfig.memoryRowWidth}
-            stroke={'#DBEAFE'}
-            strokeWidth={1}
+            stroke={CControlStashMemoryConfig.memoryRowBorderStroke}
+            strokeWidth={2}
+            fill={'#DBEAFE'}
           />
           <KonvaText
             text={this.frame.functionName}
             fontSize={CControlStashMemoryConfig.FontSize}
-            fill="#8EC5FF"
+            fill="#193CB8"
             width={CControlStashMemoryConfig.memoryRowWidth}
             height={CControlStashMemoryConfig.memoryRowHeight}
             align="center"
@@ -61,7 +70,20 @@ export class MemoryStackFrame extends CVisible {
         </KonvaGroup>
 
         {/* Memory segment */}
-        <KonvaGroup y={CControlStashMemoryConfig.memoryRowHeight}>{topToBottom(this.byteRows).map(row => row.draw())}</KonvaGroup>
+        <KonvaGroup 
+          y={CControlStashMemoryConfig.memoryRowHeight + CControlStashMemoryConfig.memoryRowPadding}
+        >
+          <Rect 
+            y={-CControlStashMemoryConfig.memoryRowPadding}
+            key={CseMachine.key++}
+            width={CControlStashMemoryConfig.memoryRowWidth}
+            height={this._height - CControlStashMemoryConfig.memoryRowHeight}
+            fill={'#EFF6FF'}
+            stroke={CControlStashMemoryConfig.memoryRowBorderStroke}
+            strokeWidth={2}
+          />
+          {topToBottom(this.byteRows, 0, 0).components.map(row => row.draw())}
+        </KonvaGroup>
       </KonvaGroup>
     );
   }

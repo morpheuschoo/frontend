@@ -1,13 +1,13 @@
 import React from 'react';
-import { Group, Rect } from 'react-konva';
+import { Group } from 'react-konva';
 import { Memory as CMemory, StackFrame } from 'src/ctowasm/dist';
 
 import { defaultTextColor } from '../../../CseMachineUtils';
 import { CControlStashMemoryConfig } from '../../config/CControlStashMemoryConfig';
-import { CConfig, ShapeDefaultProps } from '../../config/CCSEMachineConfig';
+import { CConfig } from '../../config/CCSEMachineConfig';
 import { CseMachine } from '../../CseMachine';
 import { CVisible } from '../../CVisible';
-import { MemoryStackFrame } from './MemoryStackFrame';
+import { StackVis } from '../Stack/StackVis';
 
 export class Memory extends CVisible {
   textProps = {
@@ -20,12 +20,11 @@ export class Memory extends CVisible {
   };
 
   memory: CMemory;
-  frames: MemoryStackFrame[] = [];
+  stack: StackVis;
 
   constructor(memory: CMemory, frames: StackFrame[]) {
     super();
     this.memory = memory;
-    this.frames = [];
 
     this._x =
       CControlStashMemoryConfig.ControlPosX +
@@ -39,32 +38,14 @@ export class Memory extends CVisible {
       2 * CConfig.CanvasPaddingY;
 
     this._width = CControlStashMemoryConfig.memoryRowWidth;
-    let currentY = this._y;
 
-    this.frames = [...frames].map(frame => {
-      const newMemoryStackFrame = new MemoryStackFrame(this._x, currentY, this.memory, frame);
-      currentY += newMemoryStackFrame.height();
-      return newMemoryStackFrame;
-    });
-
-    this._height = 1000;
+    this.stack = new StackVis(memory, frames);
   }
 
   draw(): React.ReactNode {
     return (
       <Group key={CseMachine.key++}>
-        <Rect
-          {...ShapeDefaultProps}
-          x={this.x()}
-          y={this.y()}
-          width={this.width()}
-          height={this.height()}
-          stroke={'#999'}
-          strokeWidth={2}
-          fill="transparent"
-          cornerRadius={Number(CConfig.FrameCornerRadius)}
-        />
-        {this.frames.map(frame => frame.draw())}
+        {this.stack.draw()}
       </Group>
     );
   }
