@@ -40,12 +40,12 @@ export class StackVis extends CVisible {
       const newMemoryStackFrame = new StackFrameVis(0, 0, this.memory, frame);
       return newMemoryStackFrame;
     });
-    
+
     this.header = new MemorySegmentHeader(
-      this.SEGMENT_NAME, 
-      CControlStashMemoryConfig.stackHeaderBackgroundColour, 
-      CControlStashMemoryConfig.stackHeaderTextColour, 
-      0, 
+      this.SEGMENT_NAME,
+      CControlStashMemoryConfig.stackHeaderBackgroundColour,
+      CControlStashMemoryConfig.stackHeaderTextColour,
+      0,
       0
     );
 
@@ -59,8 +59,8 @@ export class StackVis extends CVisible {
 
   draw(): React.ReactNode {
     return (
-      <Group key={CseMachine.key++} x={this.x()} y={this.y()}> 
-        <Rect 
+      <Group key={CseMachine.key++} x={this.x()} y={this.y()}>
+        <Rect
           {...ShapeDefaultProps}
           width={this.width()}
           height={this.height()}

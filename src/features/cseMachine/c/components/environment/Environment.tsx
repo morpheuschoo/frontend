@@ -8,13 +8,14 @@ import { CConfig } from '../../config/CCSEMachineConfig';
 import { CseMachine } from '../../CseMachine';
 import { CVisible } from '../../CVisible';
 import { Frame } from './Frame';
+import { BindingDimensionMap } from '../ui/binding/BindingDimensionMap';
 
 export class Environment extends CVisible {
   private readonly _methodFrames: Frame[] = [];
   private readonly _objects: Obj[] = [];
   private readonly _classFrames: Frame[] = [];
   private readonly _lines: Line[] = [];
-  private readonly addressToLocationMap: Map<number, { x: number, y: number }> = new Map();
+  private readonly bindingDimensionMap: BindingDimensionMap = new BindingDimensionMap();
 
   constructor(stackFrames: StackFrame[]) {
     super();
@@ -39,7 +40,7 @@ export class Environment extends CVisible {
 
     reversedFrames.forEach(frame => {
       const stroke = '#999';
-      const newFrame = new Frame(frame, methodFramesX, methodFramesY, stroke, this.addressToLocationMap);
+      const newFrame = new Frame(frame, methodFramesX, methodFramesY, stroke, this.bindingDimensionMap);
       this._methodFrames.push(newFrame);
       methodFramesY += newFrame.height() + CConfig.FramePaddingY;
       methodFramesWidth = Math.max(methodFramesWidth, newFrame.width());

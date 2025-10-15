@@ -11,7 +11,8 @@ import { CControlStashMemoryConfig } from '../../config/CControlStashMemoryConfi
 import { CConfig, ShapeDefaultProps } from '../../config/CCSEMachineConfig';
 import { CseMachine } from '../../CseMachine';
 import { CVisible } from '../../CVisible';
-import { Binding } from '../ui/Binding';
+import { Binding } from '../ui/binding/Binding';
+import { BindingDimensionMap } from '../ui/binding/BindingDimensionMap';
 import { Text } from '../ui/Text';
 
 export class Frame extends CVisible implements IHoverable {
@@ -27,7 +28,7 @@ export class Frame extends CVisible implements IHoverable {
     y: number,
     readonly stroke: string,
 
-    private addressMap: Map<number, { x: number, y: number }>,
+    private dimensionMap: BindingDimensionMap,
     readonly tooltip?: string,
     readonly highlightOnHover?: () => void,
     readonly unhighlightOnHover?: () => void
@@ -55,7 +56,7 @@ export class Frame extends CVisible implements IHoverable {
         this._x + CConfig.FramePaddingX,
         bindingY,
         frame,
-        this.addressMap
+        this.dimensionMap
       );
       this.bindings.push(currBinding);
       bindingY += currBinding.height() + CConfig.FramePaddingY;

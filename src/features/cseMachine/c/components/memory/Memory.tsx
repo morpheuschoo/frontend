@@ -9,7 +9,7 @@ import { CseMachine } from '../../CseMachine';
 import { CVisible } from '../../CVisible';
 import { DataSegmentVis } from '../dataSegment/DataSegmentVis';
 import { HeapVis } from '../heap/HeapVis';
-import { StackVis } from '../Stack/StackVis';
+import { StackVis } from '../stack/StackVis';
 
 export class Memory extends CVisible {
   textProps = {
@@ -54,7 +54,7 @@ export class Memory extends CVisible {
       basePointer,
       heapPointer
     } = memory.getPointers();
-    
+
     this.dataSegmentSizeInBytes = dataSegmentSizeInBytes;
     this.stackPointer = stackPointer;
     this.basePointer = basePointer;
