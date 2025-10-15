@@ -14,6 +14,7 @@ export class Environment extends Visible {
   private readonly _objects: Obj[] = [];
   private readonly _classFrames: Frame[] = [];
   private readonly _lines: Line[] = [];
+  private readonly addressToLocationMap: Map<number, { x: number, y: number }> = new Map();
 
   constructor(stackFrames: StackFrame[]) {
     super();
@@ -33,10 +34,12 @@ export class Environment extends Visible {
     let methodFramesY: number = this._y;
     let methodFramesWidth = Number(CConfig.FrameMinWidth);
 
+    const reversedFrames = [...stackFrames].reverse();
     let parentFrame: Frame | undefined = undefined;
-    stackFrames.forEach(frame => {
+
+    reversedFrames.forEach(frame => {
       const stroke = '#999';
-      const newFrame = new Frame(frame, methodFramesX, methodFramesY, stroke);
+      const newFrame = new Frame(frame, methodFramesX, methodFramesY, stroke, this.addressToLocationMap);
       this._methodFrames.push(newFrame);
       methodFramesY += newFrame.height() + CConfig.FramePaddingY;
       methodFramesWidth = Math.max(methodFramesWidth, newFrame.width());

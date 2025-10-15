@@ -51,7 +51,6 @@ export class Control extends Visible {
       const highlightOnHover = () => {
         let start = -1;
         let end = -1;
-        console.log('HERE BRO: ', controlItem);
         if (node.position) {
           start = node.position.start.line - 1;
           end = node.position.end.line - 1;
@@ -71,7 +70,6 @@ export class Control extends Visible {
       );
 
       this._controlItems.push(currControlItem);
-      console.log('SIZE HERE MF: ', this._controlItems, this._controlItems.length);
       controlItemY += currControlItem.height();
     });
 

@@ -27,6 +27,7 @@ export class Frame extends Visible implements IHoverable {
     y: number,
     readonly stroke: string,
 
+    private addressMap: Map<number, { x: number, y: number }>,
     readonly tooltip?: string,
     readonly highlightOnHover?: () => void,
     readonly unhighlightOnHover?: () => void
@@ -52,7 +53,9 @@ export class Frame extends Visible implements IHoverable {
         data.value || 0,
         data.dataType,
         this._x + CConfig.FramePaddingX,
-        bindingY
+        bindingY,
+        frame,
+        this.addressMap
       );
       this.bindings.push(currBinding);
       bindingY += currBinding.height() + CConfig.FramePaddingY;
