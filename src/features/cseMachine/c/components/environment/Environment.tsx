@@ -7,8 +7,8 @@ import { CControlStashMemoryConfig } from '../../config/CControlStashMemoryConfi
 import { CConfig } from '../../config/CCSEMachineConfig';
 import { CseMachine } from '../../CseMachine';
 import { CVisible } from '../../CVisible';
-import { Frame } from './Frame';
 import { BindingDimensionMap } from '../ui/binding/BindingDimensionMap';
+import { Frame } from './Frame';
 
 export class Environment extends CVisible {
   private readonly _methodFrames: Frame[] = [];
