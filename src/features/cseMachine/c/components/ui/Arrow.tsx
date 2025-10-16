@@ -52,21 +52,21 @@ export class Arrow extends CVisible implements IHoverable {
     const isGoingUp = toY < fromY;
 
     if (isGoingUp) {
-        return `M ${fromX} ${fromY}
-                L ${middleX - this.cornerRadius} ${fromY}
-                Q ${middleX} ${fromY} ${middleX} ${fromY - this.cornerRadius}
-                L ${middleX} ${toY + this.cornerRadius}
-                Q ${middleX} ${toY} ${middleX - this.cornerRadius} ${toY}
-                L ${toX} ${toY}`;
+      return `M ${fromX} ${fromY}
+              L ${middleX - this.cornerRadius} ${fromY}
+              Q ${middleX} ${fromY} ${middleX} ${fromY - this.cornerRadius}
+              L ${middleX} ${toY + this.cornerRadius}
+              Q ${middleX} ${toY} ${middleX - this.cornerRadius} ${toY}
+              L ${toX} ${toY}`;
     }
 
     return `M ${fromX} ${fromY}
             L ${middleX - this.cornerRadius} ${fromY}
             Q ${middleX} ${fromY} ${middleX} ${fromY + this.cornerRadius}
             L ${middleX} ${toY - this.cornerRadius}
-            Q ${middleX} ${toY} ${middleX + this.cornerRadius} ${toY}
+            Q ${middleX} ${toY} ${middleX - this.cornerRadius} ${toY}
             L ${toX} ${toY}`;
-    }
+  }
 
   draw(): React.ReactNode {
     return (

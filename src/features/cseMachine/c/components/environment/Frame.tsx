@@ -51,7 +51,6 @@ export class Frame extends CVisible implements IHoverable {
     for (const [key, data] of frame.variablesMap) {
       const currBinding: Binding = new Binding(
         key,
-        data.value || 0,
         data.dataType,
         this._x + CConfig.FramePaddingX,
         bindingY,
@@ -73,6 +72,14 @@ export class Frame extends CVisible implements IHoverable {
       });
 
     this.tooltipRef = React.createRef();
+  }
+
+  updateValues() {
+    let i = 0;
+    for (const [_, data] of this.frame.variablesMap) {
+      this.bindings[i].updateValue(data.value || 0, data.dataType);
+      i++;
+    }
   }
 
   setWidth(width: number) {

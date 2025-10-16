@@ -113,6 +113,22 @@ interface Position {
     start: Point;
     end: Point;
 }
+type Initializer = InitializerList | InitializerSingle;
+interface InitializerList extends CNodeBase {
+    type: "InitializerList";
+    values: Initializer[];
+}
+interface InitializerSingle extends CNodeBase {
+    type: "InitializerSingle";
+    value: Expression;
+}
+interface VariableDeclaration extends CNodeBase {
+    type: "Declaration";
+    dataType: DataType;
+    storageClass: "auto" | "static";
+    name: string;
+    initializer?: Initializer;
+}
 interface BinaryExpression extends CNodeBase {
     type: "BinaryExpression";
     leftExpr: Expression;
@@ -155,6 +171,7 @@ interface CommaSeparatedExpressions extends CNodeBase {
     type: "CommaSeparatedExpressions";
     expressions: Expression[];
 }
+declare const ENUM_DATA_TYPE = "signed int";
 interface BinaryExpressionP extends ExpressionPBase {
     type: "BinaryExpression";
     leftExpr: ExpressionP;
@@ -191,6 +208,22 @@ interface MemoryAddressEntry {
     dataType: DataType;
     value?: number;
     absoluteAddress?: number;
+}
+declare class MemoryAddressMap {
+    constructor(getDataTypeSize: (dataType: any) => number);
+    addVariable(name: string, entry: MemoryAddressEntry): void;
+    pushScope(scopeName: string): void;
+    popScope(): string | undefined;
+    buildFromSymbolTable(symbolTable: SymbolTable): void;
+    debugPrint(): void;
+    getAddressMap(): Map<string, MemoryAddressEntry>;
+}
+declare class MemoryManager {
+    constructor();
+    getAddressMap(): MemoryAddressMap;
+    enterScope(scopeName: string): void;
+    exitScope(): void;
+    debugPrint(): void;
 }
 type Address = LocalAddress | DataSegmentAddress | DynamicAddress | ReturnObjectAddress | FunctionTableIndex;
 interface AddressBase extends ExpressionPBase {
@@ -272,11 +305,61 @@ interface SwitchStatementCaseP {
     statements: StatementP[];
     position: Position;
 }
+type SymbolEntry = FunctionSymbolEntry | VariableSymbolEntry | EnumeratorSymbolEntry;
+interface FunctionSymbolEntry {
+    type: "function";
+    dataType: FunctionDataType;
+    functionDetails: FunctionDetails;
+}
+interface EnumeratorSymbolEntry {
+    type: "enumerator";
+    dataType: {
+        type: "primary";
+        primaryDataType: typeof ENUM_DATA_TYPE;
+    };
+    value: bigint;
+}
+interface VariableSymbolEntry {
+    type: "localVariable" | "dataSegmentVariable";
+    dataType: DataType;
+    offset: number;
+}
 type FunctionTable = FunctionTableEntry[];
 interface FunctionTableEntry {
     functionName: string;
     functionDetails: FunctionDetails;
     isDefined: boolean;
+}
+declare class SymbolTable {
+    parentTable: SymbolTable | null;
+    currOffset: {
+        value: number;
+    };
+    dataSegmentByteStr: {
+        value: string;
+    };
+    dataSegmentOffset: {
+        value: number;
+    };
+    functionTable: FunctionTableEntry[];
+    functionTableIndexes: Record<string, number>;
+    symbols: Record<string, SymbolEntry>;
+    externalFunctions: Record<string, FunctionSymbolEntry>;
+    currentFunctionName: string;
+    constructor(parentTable?: SymbolTable | null);
+    setExternalFunctions(includedModules: ModuleName[], moduleRepository: ModuleRepository): Record<string, FunctionSymbolEntry>;
+    isExternalFunction(funcName: string): boolean;
+    addEntry(declaration: VariableDeclaration, memoryManager: MemoryManager): SymbolEntry;
+    addEnumeratorEntry(enumeratorName: string, enumeratorValue: bigint): EnumeratorSymbolEntry;
+    addDataSegmentObject(bytes: number[]): number;
+    addVariableEntry(name: string, dataType: DataType, storageClass: "auto" | "static", memoryManager: MemoryManager): VariableSymbolEntry;
+    addFunctionEntry(name: string, dataType: FunctionDataType, isExternalFunction?: boolean): FunctionSymbolEntry;
+    hasSymbol(name: string): boolean;
+    getSymbolEntry(name: string): SymbolEntry;
+    getFunctionIndex(name: string): number;
+    setFunctionIsDefinedFlag(functionName: string): void;
+    enterFunctionScope(functionName: string, memoryManager: MemoryManager): void;
+    exitFunctionScope(memoryManager: MemoryManager): void;
 }
 interface PrimaryDataTypeMemoryObjectDetails {
     dataType: ScalarCDataType;
@@ -586,7 +669,7 @@ declare class StackFrame {
     basePointer: number;
     stackPointer: number;
     sizeOfReturn: number;
-    constructor(functionName: string, basePointer: number, stackPointer: number, sizeOfReturn: number, memory: Memory);
+    constructor(functionName: string, basePointer: number, stackPointer: number, sizeOfReturn: number, memory: Memory, memoryManager: MemoryManager);
 }
 interface CContext {
     astRoot: CAstRootP;
@@ -633,7 +716,6 @@ type WatCompilationResult = SuccessfulWatCompilationResult | FailedWatCompilatio
 export const defaultModuleRepository: ModuleRepository;
 export function compileToWat(program: string): WatCompilationResult;
 export function generate_WAT_AST(program: string): string;
-export function interpret_C_AST(program: string, modulesConfig: ModulesGlobalConfig): void;
 export function evaluate(program: string, modulesConfig: ModulesGlobalConfig, targetStep: number): Promise<EvaluationResult>;
 export function compile(program: string): Promise<CompilationResult>;
 export function compileAndRun(program: string, modulesConfig?: ModulesGlobalConfig): Promise<CompilationResult>;

@@ -50,6 +50,8 @@ export class Environment extends CVisible {
       }
       parentFrame = newFrame;
     });
+
+    this._methodFrames.forEach(frame => frame.updateValues());
   }
 
   get classes() {

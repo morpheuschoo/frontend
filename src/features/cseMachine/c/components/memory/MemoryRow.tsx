@@ -19,7 +19,6 @@ export class MemoryRow extends CVisible {
 
     this._height = CControlStashMemoryConfig.memoryRowHeight;
     this._width = CControlStashMemoryConfig.memoryRowWidth;
-    console.log(this.bytes);
   }
 
   draw(key?: number): React.ReactNode {
@@ -39,7 +38,7 @@ export class MemoryRow extends CVisible {
 
     return (
       <KonvaGroup key={CseMachine.key++}>
-        <Rect 
+        <Rect
           x={this.x()}
           y={this.y()}
           width={this.width()}
