@@ -67,6 +67,16 @@ export class Memory extends CVisible {
       this.heapPointer - 1,
     )
     this.dataSegment = new DataSegmentVis(this.memory.memory.buffer.slice(0, this.dataSegmentSizeInBytes));
+  
+    // Set all 3 segments on top of each other
+    this.dataSegment.setX(this.x());
+    this.dataSegment.setY(this.y());
+
+    this.heap.setX(this.x());
+    this.heap.setY(this.dataSegment.y() + this.dataSegment.height());
+
+    this.stack.setX(this.x());
+    this.stack.setY(this.heap.y() + this.heap.height());
   }
 
   draw(): React.ReactNode {

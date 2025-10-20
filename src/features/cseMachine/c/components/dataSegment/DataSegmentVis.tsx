@@ -1,3 +1,5 @@
+import Konva from "konva";
+import React, { RefObject } from "react";
 import { Group, Rect } from "react-konva";
 
 import { CControlStashMemoryConfig } from "../../config/CControlStashMemoryConfig";
@@ -10,23 +12,17 @@ import { MemorySegmentHeader } from "../memory/MemorySegmentHeader";
 
 export class DataSegmentVis extends CVisible {
   private readonly header: MemorySegmentHeader;
+
   private byteRows: MemoryRow[] = [];
+  private byteRowsTotalHeight: number;
+  private byteRowsClipHeight: number;
+  private byteRowGroupRef: RefObject<any> = React.createRef();
   
+  private scrollY: number = 0;
+
   constructor(bytes: ArrayBuffer) {
     super();
-    this._x =
-      CControlStashMemoryConfig.ControlPosX +
-      CControlStashMemoryConfig.ControlItemWidth +
-      4 * CConfig.CanvasPaddingX +
-      3 * CConfig.FrameMaxWidth;
-
-    this._y =
-      CControlStashMemoryConfig.StashPosY +
-      CControlStashMemoryConfig.StashItemHeight +
-      2 * CConfig.CanvasPaddingY;
-
-    this._width = CControlStashMemoryConfig.memoryRowWidth;
-
+    
     this.header = new MemorySegmentHeader(
       "Data segment", 
       CControlStashMemoryConfig.dataSegmentHeaderBackgroundColour,
@@ -37,17 +33,67 @@ export class DataSegmentVis extends CVisible {
     for(let i = 0;i < bytes.byteLength;i += 4) {
       this.byteRows.push(new MemoryRow(i, bytes.slice(i, i + 4), 0, 0));
     }
-    const {components, totalHeight} = topToBottom<MemoryRow>([...this.byteRows], CControlStashMemoryConfig.memoryRowPadding, this.header.height())
+    const {components, totalHeight} = topToBottom<MemoryRow>(
+      [...this.byteRows], 
+      CControlStashMemoryConfig.memoryRowPadding, 
+      0
+    )
+    
     this.byteRows = components;
+    this.byteRowsTotalHeight = totalHeight;
+    this.byteRowsClipHeight = Math.min(
+      totalHeight, 
+      CControlStashMemoryConfig.memorySegmentInitialHeight
+    );
+    
+    this._x =
+    CControlStashMemoryConfig.ControlPosX +
+    CControlStashMemoryConfig.ControlItemWidth +
+      4 * CConfig.CanvasPaddingX +
+      3 * CConfig.FrameMaxWidth;
+      
+    this._y =
+    CControlStashMemoryConfig.StashPosY +
+      CControlStashMemoryConfig.StashItemHeight +
+      2 * CConfig.CanvasPaddingY;
 
+    this._width = CControlStashMemoryConfig.memoryRowWidth;
     // height = header + total height of byte rows + padding between header and byte row
     if (this.byteRows.length > 0) {
-      this._height =
-      this.header.height() +
-      totalHeight +
-      CControlStashMemoryConfig.memoryRowPadding;
+      this._height = this.header.height() + this.byteRowsClipHeight;
     } else {
       this._height = this.header.height();
+    }
+  }
+
+  private handleScroll = (event: Konva.KonvaEventObject<WheelEvent>): void => {
+    if (typeof event != 'boolean') {
+      event.evt.preventDefault();
+    }
+    event.cancelBubble = true;
+
+    if (this.byteRowGroupRef.current) {
+      const group = this.byteRowGroupRef.current as Konva.Group;
+      let unitConversion: number = 1;
+  
+      if (event.evt.deltaMode === 1) {
+        unitConversion = CConfig.LineHeight;
+      } else if (event.evt.deltaMode === 2) {
+        unitConversion = CConfig.PageHeight;
+      }
+      const maxScroll = 
+        this.byteRowsTotalHeight + CControlStashMemoryConfig.memoryRowPadding - this.byteRowsClipHeight;
+      this.scrollY += (event.evt.deltaY * unitConversion) * 0.1;
+
+      if (this.scrollY > maxScroll) {
+        this.scrollY = maxScroll;
+      } else if (this.scrollY < 0) {
+        this.scrollY = 0;
+      }
+      console.log(this.scrollY, "HERE BROO")
+
+      group.y(-this.scrollY);
+      group.getLayer()?.batchDraw();
     }
   }
 
@@ -65,18 +111,30 @@ export class DataSegmentVis extends CVisible {
           cornerRadius={CConfig.FrameCornerRadius}
         />
         {this.header.draw()}
-        <Rect
-          {...ShapeDefaultProps}
-          key={CseMachine.key++}
-          width={this.width()}
+        <Group key={CseMachine.key++}
+          clipX={0}
+          clipY={0}
           y={this.header.height()}
-          height={this.height() - this.header.height()}
-          stroke={CControlStashMemoryConfig.memoryRowBorderStroke}
-          strokeWidth={2}
-          fill={"#FFEDD4"}
-        />
-        <Group key={CseMachine.key++} y={CControlStashMemoryConfig.memoryRowPadding}>
-          {this.byteRows.map((row) => row.draw())}
+          clipWidth={this.width()} 
+          clipHeight={this.byteRowsClipHeight}
+          onWheel={this.handleScroll}
+        >
+          <Group 
+            key={CseMachine.key++} 
+            height={this.byteRowsTotalHeight}
+            ref={this.byteRowGroupRef}
+          >
+            <Rect
+              {...ShapeDefaultProps}
+              key={CseMachine.key++}
+              width={this.width()}
+              height={this.byteRowsTotalHeight + CControlStashMemoryConfig.memoryRowPadding}
+              fill={"#FFEDD4"}
+            />
+            <Group key={CseMachine.key++} y={CControlStashMemoryConfig.memoryRowPadding}>
+              {this.byteRows.map((row) => row.draw())}
+            </Group>
+          </Group>
         </Group>
       </Group>
     )
