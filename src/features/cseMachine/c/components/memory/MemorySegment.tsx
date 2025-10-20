@@ -33,7 +33,7 @@ export class MemorySegment extends CVisible {
     this.byteRows = components
     this.byteRowsTotalHeight = totalHeight;
     this.byteRowsClipHeight = Math.min(
-      totalHeight,
+      totalHeight + (totalHeight > 0 ? CControlStashMemoryConfig.memoryRowPadding : 0),
       CControlStashMemoryConfig.memorySegmentInitialHeight
     );
 

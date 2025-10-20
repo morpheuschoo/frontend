@@ -4,13 +4,13 @@ import { CControlStashMemoryConfig } from "../../config/CControlStashMemoryConfi
 import { CConfig, ShapeDefaultProps } from "../../config/CCSEMachineConfig";
 import { CseMachine } from "../../CseMachine";
 import { CVisible } from "../../CVisible";
-import { topToBottom } from "../../utils";
 import { MemoryRow } from "../memory/MemoryRow";
+import { MemorySegment } from "../memory/MemorySegment";
 import { MemorySegmentHeader } from "../memory/MemorySegmentHeader";
 
 export class HeapVis extends CVisible {
   private readonly header: MemorySegmentHeader;
-  private byteRows: MemoryRow[] = [];
+  private readonly memorySegment: MemorySegment;
 
   private readonly SEGMENT_NAME: string = "Heap";
 
@@ -21,7 +21,6 @@ export class HeapVis extends CVisible {
       );
     }
     super();
-    this.byteRows = []
 
     this._x =
       CControlStashMemoryConfig.ControlPosX +
@@ -43,21 +42,19 @@ export class HeapVis extends CVisible {
       0, 
       0
     );
-    for(let i = 0;i < bytes.byteLength;i += 4) {
-      this.byteRows.push(new MemoryRow(startAddress + i, bytes.slice(i, i + 4), 0, 0));
-    }
-    const {components, totalHeight} = topToBottom<MemoryRow>([...this.byteRows], CControlStashMemoryConfig.memoryRowPadding, this.header.height())
-    this.byteRows = components;
 
-    // height = header + total height of byte rows + padding between header and byte row
-    if (this.byteRows.length > 0) {
-      this._height =
-      this.header.height() +
-      totalHeight +
-      CControlStashMemoryConfig.memoryRowPadding;
-    } else {
-      this._height = this.header.height();
+    const byteRows: MemoryRow[] = [];
+    for(let i = 0;i < bytes.byteLength;i += 4) {
+      byteRows.push(new MemoryRow(startAddress + i, bytes.slice(i, i + 4), 0, 0));
     }
+    this.memorySegment = new MemorySegment(
+      byteRows,
+      0,
+      this.header.height(),
+      "#DCFCE7"
+    )
+
+    this._height = this.header.height() + this.memorySegment.height()
   }
 
   draw(): React.ReactNode {
@@ -74,19 +71,7 @@ export class HeapVis extends CVisible {
           cornerRadius={CConfig.FrameCornerRadius}
         />
         {this.header.draw()}
-        <Rect
-          {...ShapeDefaultProps}
-          key={CseMachine.key++}
-          width={this.width()}
-          y={this.header.height()}
-          height={this.height() - this.header.height()}
-          stroke={CControlStashMemoryConfig.memoryRowBorderStroke}
-          strokeWidth={2}
-          fill={"#DCFCE7"}
-        />
-        <Group key={CseMachine.key++} y={CControlStashMemoryConfig.memoryRowPadding}>
-          {this.byteRows.map((row) => row.draw())}
-        </Group>
+        {this.memorySegment.draw()}
       </Group>
     );
   }

@@ -8,15 +8,7 @@ import { CseMachine } from "../../CseMachine";
 import { CVisible } from "../../CVisible";
 
 export class MemorySegmentHeader extends CVisible {
-  textProps = {
-    fill: defaultTextColor(),
-    padding: CControlStashMemoryConfig.ControlItemTextPadding,
-    fontFamily: CControlStashMemoryConfig.FontFamily,
-    fontSize: CControlStashMemoryConfig.FontSize,
-    fontStyle: CControlStashMemoryConfig.FontStyle,
-    fontVariant: CControlStashMemoryConfig.FontVariant
-  };
-
+  
   constructor(
     private readonly _segmentName: string, 
     private readonly _backgroundColour: string, 
@@ -30,8 +22,16 @@ export class MemorySegmentHeader extends CVisible {
     this._width = CControlStashMemoryConfig.memoryRowWidth;
     this._height = CControlStashMemoryConfig.memoryRowHeight * 2;
   }
-
+  
   draw(key?: number): React.ReactNode {
+    const textProps = {
+      fill: defaultTextColor(),
+      padding: CControlStashMemoryConfig.ControlItemTextPadding,
+      fontFamily: CControlStashMemoryConfig.FontFamily,
+      fontSize: CControlStashMemoryConfig.FontSize,
+      fontStyle: CControlStashMemoryConfig.FontStyle,
+      fontVariant: CControlStashMemoryConfig.FontVariant
+    };
 
     return (
       <Group key={CseMachine.key++} x={0} y={0}>
@@ -46,7 +46,7 @@ export class MemorySegmentHeader extends CVisible {
           cornerRadius={Number(CConfig.FrameCornerRadius)}
         />
         <Text
-          {...this.textProps}
+          {...textProps}
           fontSize={20}
           x={this.x() + CControlStashMemoryConfig.memoryRowPadding}
           y={this.y() + CControlStashMemoryConfig.memoryRowPadding}
