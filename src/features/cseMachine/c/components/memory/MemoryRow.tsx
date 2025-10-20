@@ -19,7 +19,6 @@ export class MemoryRow extends CVisible {
 
     this._height = CControlStashMemoryConfig.memoryRowHeight;
     this._width = CControlStashMemoryConfig.memoryRowWidth;
-    console.log(this.bytes);
   }
 
   draw(key?: number): React.ReactNode {
