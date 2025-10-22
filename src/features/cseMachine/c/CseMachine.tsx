@@ -61,9 +61,8 @@ export class CseMachine {
   static clearCse() {
     if (this.setVis) {
       this.setVis(undefined);
-      // CseMachine.environment = undefined;
       CseMachine.control = undefined;
-      // CseMachine.stash = undefined;
+      CseMachine.stash = undefined;
     }
   }
 

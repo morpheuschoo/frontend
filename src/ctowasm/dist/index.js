@@ -24830,6 +24830,7 @@ const $ca4a859fe993d49f$export$4547c04865e84cd6 = {
         parameters.reverse();
         if (functionAddress.type !== "FunctionTableIndex") throw new Error("Wrong function pointer type in Call instruction");
         const calledFunction = (0, $bf9b58631501cd70$export$269330a1f1074312).astRootP.functionTable[Number(functionAddress.index.value)];
+        // Internal function defined by user
         if ((0, $bf9b58631501cd70$export$269330a1f1074312).astRootP.functions.find((x)=>x.name === calledFunction.functionName)) {
             const func = (0, $bf9b58631501cd70$export$269330a1f1074312).astRootP.functions.find((x)=>x.name === calledFunction.functionName);
             if (!func) throw new Error("No function called: " + calledFunction.functionName);
@@ -24842,6 +24843,7 @@ const $ca4a859fe993d49f$export$4547c04865e84cd6 = {
             const resultRuntime = writtenRuntime.push(func.body);
             return resultRuntime;
         } else {
+            // External function in library
             // Set up a new Stackframe
             const sizeOfParams = instruction.functionDetails.sizeOfParams;
             const sizeOfReturn = instruction.functionDetails.sizeOfReturn;
@@ -24881,6 +24883,10 @@ const $ca4a859fe993d49f$export$4547c04865e84cd6 = {
                     res
                 ];
                 if (results.length !== returnObjects.length) throw new Error("results of external function length does not match returnObjects length");
+                // IMPORTANT Handling for adding heap objects into memory manager mapping
+                // if (calledFunction.functionName === "malloc") {
+                //   runtime.memo
+                // }
                 // Prepare memory store expressions for each return object address
                 const memoryStoreExpressions = [];
                 let currentOffSet = 0;
@@ -25242,7 +25248,8 @@ class $0e3dcdadceadf815$export$29d4d7bc03c348a5 {
 
 
 class $bf9b58631501cd70$export$269330a1f1074312 {
-    constructor(control, stash, memory){
+    constructor(memoryManager, control, stash, memory){
+        this.memoryManager = memoryManager;
         this.stash = stash || new (0, $aedf17afe77f7184$export$8be94b08bb3c4aa3)();
         this.control = control || new (0, $45537d54220eef3f$export$7a7fa4424cb20976)();
         if (!memory) {
@@ -25251,9 +25258,9 @@ class $bf9b58631501cd70$export$269330a1f1074312 {
         } else this.memory = memory;
     }
     next() {
-        if (this.hasCompleted()) return new $bf9b58631501cd70$export$269330a1f1074312(this.control, this.stash, this.memory);
+        if (this.hasCompleted()) return new $bf9b58631501cd70$export$269330a1f1074312(this.memoryManager, this.control, this.stash, this.memory);
         const [item, newControl] = this.control.pop();
-        const poppedRuntime = new $bf9b58631501cd70$export$269330a1f1074312(newControl, this.stash, this.memory);
+        const poppedRuntime = new $bf9b58631501cd70$export$269330a1f1074312(this.memoryManager, newControl, this.stash, this.memory);
         if ((0, $6267764a9e4139a0$export$517b0c6d75337fc8)(item)) return poppedRuntime.evaluateInstruction(item);
         else return poppedRuntime.evaluateNode(item);
     }
@@ -25279,7 +25286,7 @@ class $bf9b58631501cd70$export$269330a1f1074312 {
     }
     cloneModuleMemory() {
         const newMemory = this.memory.cloneModuleMemory();
-        return new $bf9b58631501cd70$export$269330a1f1074312(this.control, this.stash, newMemory);
+        return new $bf9b58631501cd70$export$269330a1f1074312(this.memoryManager, this.control, this.stash, newMemory);
     }
     cloneMemory() {
         return this.memory.clone();
@@ -25294,7 +25301,7 @@ class $bf9b58631501cd70$export$269330a1f1074312 {
                 dataType: pair.dataType
             };
         });
-        return new $bf9b58631501cd70$export$269330a1f1074312(this.control, this.stash, this.memory.write(memoryWriteInterfaceArr));
+        return new $bf9b58631501cd70$export$269330a1f1074312(this.memoryManager, this.control, this.stash, this.memory.write(memoryWriteInterfaceArr));
     }
     memoryLoad(address, dataType) {
         const value = this.memory.load(address, dataType);
@@ -25303,42 +25310,46 @@ class $bf9b58631501cd70$export$269330a1f1074312 {
     }
     stackFrameSetup(sizeOfParams, sizeOfLocals, sizeOfReturn, parameters) {
         const newMemory = this.memory.stackFrameSetup(sizeOfParams, sizeOfLocals, sizeOfReturn, parameters);
-        return new $bf9b58631501cd70$export$269330a1f1074312(this.control, this.stash, newMemory);
+        return new $bf9b58631501cd70$export$269330a1f1074312(this.memoryManager, this.control, this.stash, newMemory);
     }
     stackFrameTearDown(stackPointer, basePointer) {
         const newMemory = this.memory.stackFrameTearDown(stackPointer, basePointer);
-        return new $bf9b58631501cd70$export$269330a1f1074312(this.control, this.stash, newMemory);
+        return new $bf9b58631501cd70$export$269330a1f1074312(this.memoryManager, this.control, this.stash, newMemory);
     }
     getPointers() {
         return this.memory.sharedWasmGlobalVariables;
     }
+    // Adds a heap object address to the memory manager for later to be used in the frontend
+    // addHeapObject(address: number, dataType: DataType): void {
+    //   this.memoryManager.enterScope()
+    // }
     // Control functions
     // function to push general instruction/CNodeP onto the control
     push(item) {
-        return new $bf9b58631501cd70$export$269330a1f1074312(this.control.concat([
+        return new $bf9b58631501cd70$export$269330a1f1074312(this.memoryManager, this.control.concat([
             ...item
         ].reverse()), this.stash, this.memory);
     }
     pushNode(node) {
-        return new $bf9b58631501cd70$export$269330a1f1074312(this.control.concat([
+        return new $bf9b58631501cd70$export$269330a1f1074312(this.memoryManager, this.control.concat([
             ...node
         ].reverse()), this.stash, this.memory);
     }
     pushInstruction(instruction) {
-        return new $bf9b58631501cd70$export$269330a1f1074312(this.control.concat([
+        return new $bf9b58631501cd70$export$269330a1f1074312(this.memoryManager, this.control.concat([
             ...instruction
         ].reverse()), this.stash, this.memory);
     }
     // STASH FUNCTIONS
     pushValue(value) {
-        return new $bf9b58631501cd70$export$269330a1f1074312(this.control, this.stash.push(value), this.memory);
+        return new $bf9b58631501cd70$export$269330a1f1074312(this.memoryManager, this.control, this.stash.push(value), this.memory);
     }
     popNode() {
         const [node, newControl] = this.control.pop();
         if (node === undefined) throw new Error("Undefined popped node");
         return [
             node,
-            new $bf9b58631501cd70$export$269330a1f1074312(newControl, this.stash, this.memory)
+            new $bf9b58631501cd70$export$269330a1f1074312(this.memoryManager, newControl, this.stash, this.memory)
         ];
     }
     popValue() {
@@ -25346,7 +25357,7 @@ class $bf9b58631501cd70$export$269330a1f1074312 {
         if (value === undefined) throw new Error("Undefined popped stash value");
         return [
             value,
-            new $bf9b58631501cd70$export$269330a1f1074312(this.control, newStash, this.memory)
+            new $bf9b58631501cd70$export$269330a1f1074312(this.memoryManager, this.control, newStash, this.memory)
         ];
     }
     hasCompleted() {
@@ -25360,7 +25371,7 @@ class $bf9b58631501cd70$export$269330a1f1074312 {
     }
     popControl() {
         const [popedItem, newControl] = this.control.pop();
-        const newRuntime = new $bf9b58631501cd70$export$269330a1f1074312(newControl, this.stash, this.memory);
+        const newRuntime = new $bf9b58631501cd70$export$269330a1f1074312(this.memoryManager, newControl, this.stash, this.memory);
         if (popedItem === undefined) throw new Error("Cannot pop control: no elements left");
         return [
             popedItem,
@@ -25473,7 +25484,7 @@ class $8c91e30fbe002c74$export$e5b52c46a548ff03 {
         const mainFunction = (0, $bf9b58631501cd70$export$269330a1f1074312).astRootP.functions.find((x)=>x.name === "main");
         if (!mainFunction) throw new Error("Main function not defined");
         // call main
-        const initialRuntime = new (0, $bf9b58631501cd70$export$269330a1f1074312)(new (0, $45537d54220eef3f$export$7a7fa4424cb20976)([
+        const initialRuntime = new (0, $bf9b58631501cd70$export$269330a1f1074312)(this.memoryManager, new (0, $45537d54220eef3f$export$7a7fa4424cb20976)([
             {
                 type: "FunctionCall",
                 calledFunction: {
@@ -25542,7 +25553,7 @@ class $8c91e30fbe002c74$export$e5b52c46a548ff03 {
         const mainFunction = (0, $bf9b58631501cd70$export$269330a1f1074312).astRootP.functions.find((x)=>x.name === "main");
         if (!mainFunction) throw new Error("Main function not defined");
         // call main
-        const initialRuntime = new (0, $bf9b58631501cd70$export$269330a1f1074312)(new (0, $45537d54220eef3f$export$7a7fa4424cb20976)([
+        const initialRuntime = new (0, $bf9b58631501cd70$export$269330a1f1074312)(this.memoryManager, new (0, $45537d54220eef3f$export$7a7fa4424cb20976)([
             {
                 type: "FunctionCall",
                 calledFunction: {
@@ -25779,15 +25790,20 @@ async function $29d5c7e8e9cfab6e$export$3567556d58c2cae(astRootNode, includedMod
     return await interpreter.interpretTillStep(targetStep);
 }
 function $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem) {
-    const codePosition = controlItem.position;
-    // extract the code position at a line start and line end
-    const lines = (0, $bf9b58631501cd70$export$269330a1f1074312).sourceCode.split("\n");
-    const extractedCode = lines.slice(codePosition.start.line - 1, codePosition.end.line).filter((line)=>line.trim() !== "");
-    if (extractedCode.length > 0) {
-        extractedCode[0] = extractedCode[0].slice(codePosition.start.column - 1);
-        extractedCode[extractedCode.length - 1] = extractedCode[extractedCode.length - 1].slice(0, codePosition.end.column - 1);
-    }
-    return extractedCode.join("\n");
+    // const codePosition = controlItem.position;
+    // // extract the code position at a line start and line end
+    // const lines = Runtime.sourceCode.split("\n");
+    // const extractedCode = lines
+    //   .slice(codePosition.start.line - 1, codePosition.end.line)
+    //   .filter((line) => line.trim() !== "");
+    // if (extractedCode.length > 0) {
+    //   extractedCode[0] = extractedCode[0].slice(codePosition.start.column - 1);
+    //   extractedCode[extractedCode.length - 1] = extractedCode[
+    //     extractedCode.length - 1
+    //   ].slice(0, codePosition.end.column - 1);
+    // }
+    // return extractedCode.join("\n");
+    return "";
 }
 function $29d5c7e8e9cfab6e$export$7b429031fe89ea9f(controlItem) {
     if ((0, $6267764a9e4139a0$export$517b0c6d75337fc8)(controlItem)) {

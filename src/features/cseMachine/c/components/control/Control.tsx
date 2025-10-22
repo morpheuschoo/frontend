@@ -17,30 +17,28 @@ export class Control extends CVisible {
   isEmpty(): boolean {
     return this._controlItems.length == 0;
   }
-
+  
   constructor(control: CControl) {
     super();
-
+    
     // Position.
     this._x = CControlStashMemoryConfig.ControlPosX;
     this._y =
-      CControlStashMemoryConfig.ControlPosY +
-      CControlStashMemoryConfig.StashItemHeight +
-      CControlStashMemoryConfig.StashItemTextPadding * 2;
-
+    CControlStashMemoryConfig.ControlPosY +
+    CControlStashMemoryConfig.StashItemHeight +
+    CControlStashMemoryConfig.StashItemTextPadding * 2;
+    
     // Create each ControlItem.
     let controlItemY: number = this._y;
     control.getStack().forEach((controlItem: CControlItem, index: number) => {
       let controlItemText = '';
-
       controlItemText = controlItemToString(controlItem);
-
+      
       const controlItemStroke =
-        index === control.getStack().length - 1 ? defaultActiveColor() : defaultStrokeColor();
-
+      index === control.getStack().length - 1 ? defaultActiveColor() : defaultStrokeColor();
+      
       const controlItemTooltip = this.getControlItemTooltip(controlItem);
-      this.getControlItemTooltip(controlItem);
-
+      
       const node = !control.isInstruction(controlItem) ? controlItem : controlItem;
       const highlightOnHover = () => {
         let start = -1;
@@ -52,7 +50,7 @@ export class Control extends CVisible {
         CseMachine.setEditorHighlightedLines([[start, end]]);
       };
       const unhighlightOnHover = () => CseMachine.setEditorHighlightedLines([]);
-
+      
       const currControlItem = new ControlItem(
         controlItemY,
         controlItemText,
@@ -61,11 +59,10 @@ export class Control extends CVisible {
         highlightOnHover,
         unhighlightOnHover
       );
-
+      
       this._controlItems.push(currControlItem);
       controlItemY += currControlItem.height();
     });
-
     this._height = controlItemY - this._y;
     this._width = CControlStashMemoryConfig.ControlItemWidth;
   }
