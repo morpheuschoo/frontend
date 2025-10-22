@@ -36,7 +36,7 @@ export class StackVis extends CVisible {
     this._width = CControlStashMemoryConfig.memoryRowWidth;
 
     // construct memory frames
-    this.frames = [...frames].map(frame => {
+    this.frames = [...frames].filter((frame) => (frame.functionName !== "global")).map(frame => {
       const newMemoryStackFrame = new StackFrameVis(0, 0, this.memory, frame);
       return newMemoryStackFrame;
     });

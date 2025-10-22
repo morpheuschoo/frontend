@@ -716,6 +716,7 @@ type WatCompilationResult = SuccessfulWatCompilationResult | FailedWatCompilatio
 export const defaultModuleRepository: ModuleRepository;
 export function compileToWat(program: string): WatCompilationResult;
 export function generate_WAT_AST(program: string): string;
+export function interpret_C_AST(program: string, modulesConfig: ModulesGlobalConfig): void;
 export function evaluate(program: string, modulesConfig: ModulesGlobalConfig, targetStep: number): Promise<EvaluationResult>;
 export function compile(program: string): Promise<CompilationResult>;
 export function compileAndRun(program: string, modulesConfig?: ModulesGlobalConfig): Promise<CompilationResult>;

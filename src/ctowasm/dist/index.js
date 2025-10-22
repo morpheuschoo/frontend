@@ -20621,8 +20621,8 @@ function $812b9a955e75cbf9$export$2e2bcd8739ae039(sourceCode, moduleRepository) 
 
 
 
-function $278774b275ed49b9$export$41f976199fdafdab(condition, symbolTable) {
-    const processedCondition = (0, $551bb05b84852d99$export$2e2bcd8739ae039)(condition, symbolTable);
+function $278774b275ed49b9$export$41f976199fdafdab(condition, symbolTable, memoryManager) {
+    const processedCondition = (0, $551bb05b84852d99$export$2e2bcd8739ae039)(condition, symbolTable, memoryManager);
     const dataTypeOfConditionExpression = $278774b275ed49b9$export$eb27e3f48ee2e547({
         expression: processedCondition,
         convertArrayToPointer: true,
@@ -21367,7 +21367,7 @@ function $cf264a5b1eb44de7$export$2e2bcd8739ae039(node, symbolTable, enclosingFu
             const processedForLoopNode = {
                 type: "ForLoop",
                 clause: clause,
-                condition: node.condition !== null ? (0, $278774b275ed49b9$export$41f976199fdafdab)(node.condition, forLoopSymbolTable) : null,
+                condition: node.condition !== null ? (0, $278774b275ed49b9$export$41f976199fdafdab)(node.condition, forLoopSymbolTable, memoryManager) : null,
                 update: node.update !== null ? $cf264a5b1eb44de7$export$2e2bcd8739ae039(node.update, forLoopSymbolTable, enclosingFunc, memoryManager) : [],
                 body: $cf264a5b1eb44de7$var$processLoopBody(node.body, forLoopSymbolTable, enclosingFunc, memoryManager),
                 position: node.position
@@ -21378,7 +21378,7 @@ function $cf264a5b1eb44de7$export$2e2bcd8739ae039(node, symbolTable, enclosingFu
         } else if (node.type === "DoWhileLoop" || node.type === "WhileLoop") return [
             {
                 type: node.type,
-                condition: (0, $278774b275ed49b9$export$41f976199fdafdab)(node.condition, symbolTable),
+                condition: (0, $278774b275ed49b9$export$41f976199fdafdab)(node.condition, symbolTable, memoryManager),
                 body: $cf264a5b1eb44de7$var$processLoopBody(node.body, symbolTable, enclosingFunc, memoryManager),
                 position: node.position
             }
@@ -21398,7 +21398,7 @@ function $cf264a5b1eb44de7$export$2e2bcd8739ae039(node, symbolTable, enclosingFu
         } else if (node.type === "SelectionStatement") return [
             {
                 type: "SelectionStatement",
-                condition: (0, $278774b275ed49b9$export$41f976199fdafdab)(node.condition, symbolTable),
+                condition: (0, $278774b275ed49b9$export$41f976199fdafdab)(node.condition, symbolTable, memoryManager),
                 ifStatements: $cf264a5b1eb44de7$export$2e2bcd8739ae039(node.ifStatement, symbolTable, enclosingFunc, memoryManager),
                 elseStatements: node.elseStatement ? $cf264a5b1eb44de7$export$2e2bcd8739ae039(node.elseStatement, symbolTable, enclosingFunc, memoryManager) : null,
                 position: node.position
@@ -21502,7 +21502,7 @@ function $cf264a5b1eb44de7$export$2e2bcd8739ae039(node, symbolTable, enclosingFu
             return [
                 {
                     type: "SelectionStatement",
-                    condition: (0, $278774b275ed49b9$export$41f976199fdafdab)(node.condition, symbolTable),
+                    condition: (0, $278774b275ed49b9$export$41f976199fdafdab)(node.condition, symbolTable, memoryManager),
                     ifStatements: $cf264a5b1eb44de7$export$2e2bcd8739ae039(node.trueExpression, symbolTable, enclosingFunc, memoryManager),
                     elseStatements: $cf264a5b1eb44de7$export$2e2bcd8739ae039(node.falseExpression, symbolTable, enclosingFunc, memoryManager),
                     position: node.position
@@ -24645,7 +24645,18 @@ const $4c069963d8c4e053$export$85b8210694d044d6 = {
                 (0, $6267764a9e4139a0$export$d9305c39e55b1eb6)(calledFunction.functionName, pointers.basePointer.value, pointers.stackPointer.value, node.functionDetails.sizeOfReturn, targetPosition)
             ]);
             return newRuntime;
-        } else throw new Error("TODO: Implement indirectly called function");
+        } else {
+            const calledFunction = node.calledFunction;
+            const funcIndex = calledFunction.functionAddress;
+            const newRuntime = runtime.push([
+                ...node.args,
+                funcIndex,
+                (0, $6267764a9e4139a0$export$e8be8116a52d95e8)(),
+                (0, $6267764a9e4139a0$export$2f00d225c49b711d)(node.calledFunction, node.functionDetails, calledFunction.functionAddress.position),
+                (0, $6267764a9e4139a0$export$d9305c39e55b1eb6)("External function", pointers.basePointer.value, pointers.stackPointer.value, node.functionDetails.sizeOfReturn, calledFunction.functionAddress.position)
+            ]);
+            return newRuntime;
+        }
     },
     // ========== EXPRESSIONS ==========
     IntegerConstant: (runtime, node)=>{
@@ -25516,7 +25527,6 @@ class $8c91e30fbe002c74$export$e5b52c46a548ff03 {
             lastStackPointer = tearDowns[i].stackPointer;
         }
         stackFrames.push(new (0, $ab578cd88f2696dc$export$8949fddf10447898)("global", 0, 0, 0, currentRuntime.getMemory(), this.memoryManager));
-        // console.log(stackFrames);
         return {
             astRoot: this.astRootNode,
             control: currentRuntime.getControl(),
@@ -25532,8 +25542,6 @@ class $8c91e30fbe002c74$export$e5b52c46a548ff03 {
         const mainFunction = (0, $bf9b58631501cd70$export$269330a1f1074312).astRootP.functions.find((x)=>x.name === "main");
         if (!mainFunction) throw new Error("Main function not defined");
         // call main
-        console.log("Starting interpretation...");
-        console.log(this.astRootNode.position);
         const initialRuntime = new (0, $bf9b58631501cd70$export$269330a1f1074312)(new (0, $45537d54220eef3f$export$7a7fa4424cb20976)([
             {
                 type: "FunctionCall",
@@ -25564,10 +25572,8 @@ class $8c91e30fbe002c74$export$e5b52c46a548ff03 {
         for (const moduleName of (0, $bf9b58631501cd70$export$269330a1f1074312).includedModules)if (typeof (0, $bf9b58631501cd70$export$269330a1f1074312).modules.modules[moduleName].instantiate !== "undefined") await (0, $bf9b58631501cd70$export$269330a1f1074312).modules.modules[moduleName].instantiate();
         this.runtimeStack.push(initialRuntime);
         let currentRuntime = initialRuntime;
-        // console.log(currentRuntime.toString());
         while(!currentRuntime.hasCompleted()){
             currentRuntime = currentRuntime.next();
-            // console.log(currentRuntime.toString());
             this.runtimeStack.push(currentRuntime);
         }
     }
@@ -25584,163 +25590,6 @@ class $8c91e30fbe002c74$export$e5b52c46a548ff03 {
 }
 
 
-
-
-async function $29d5c7e8e9cfab6e$export$3567556d58c2cae(astRootNode, includedModules, moduleConfig, targetStep, sourceCode, memoryManager) {
-    const interpreter = new (0, $8c91e30fbe002c74$export$e5b52c46a548ff03)(astRootNode, includedModules, moduleConfig, sourceCode, memoryManager);
-    return await interpreter.interpretTillStep(targetStep);
-}
-function $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem) {
-    const codePosition = controlItem.position;
-    // extract the code position at a line start and line end
-    const lines = (0, $bf9b58631501cd70$export$269330a1f1074312).sourceCode.split("\n");
-    const extractedCode = lines.slice(codePosition.start.line - 1, codePosition.end.line).filter((line)=>line.trim() !== "");
-    if (extractedCode.length > 0) {
-        extractedCode[0] = extractedCode[0].slice(codePosition.start.column - 1);
-        extractedCode[extractedCode.length - 1] = extractedCode[extractedCode.length - 1].slice(0, codePosition.end.column - 1);
-    }
-    return extractedCode.join("\n");
-}
-function $29d5c7e8e9cfab6e$export$7b429031fe89ea9f(controlItem) {
-    if ((0, $6267764a9e4139a0$export$517b0c6d75337fc8)(controlItem)) {
-        const type = controlItem.type;
-        const fn = $29d5c7e8e9cfab6e$export$e8a8d0ca26dbf9c6[type];
-        if (fn) return fn(controlItem);
-    } else {
-        const type = controlItem.type;
-        const fn = $29d5c7e8e9cfab6e$export$6b717a7b89b3aa[type];
-        if (fn) return fn(controlItem);
-    }
-    throw new Error("Unknown instruction type");
-}
-const $29d5c7e8e9cfab6e$export$e8a8d0ca26dbf9c6 = {
-    [(0, $6267764a9e4139a0$export$c11d6cfb99c9fdfb).BINARY_OP]: (controlItem)=>{
-        return "Binary operator: " + controlItem.operator;
-    },
-    [(0, $6267764a9e4139a0$export$c11d6cfb99c9fdfb).BRANCH]: (controlItem)=>{
-        const extractedCode = $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
-        return "Branch instruction: " + extractedCode;
-    },
-    [(0, $6267764a9e4139a0$export$c11d6cfb99c9fdfb).BREAK_MARK]: (controlItem)=>{
-        return "Break Mark";
-    },
-    [(0, $6267764a9e4139a0$export$c11d6cfb99c9fdfb).CALLINSTRUCTION]: (controlItem)=>{
-        return "Call Function";
-    },
-    [(0, $6267764a9e4139a0$export$c11d6cfb99c9fdfb).CASE_JUMP]: (controlItem)=>{
-        return "Case Jump";
-    },
-    [(0, $6267764a9e4139a0$export$c11d6cfb99c9fdfb).CASE_MARK]: (controlItem)=>{
-        return "Case Mark";
-    },
-    [(0, $6267764a9e4139a0$export$c11d6cfb99c9fdfb).CONTINUE_MARK]: (controlItem)=>{
-        return "Continue Mark";
-    },
-    [(0, $6267764a9e4139a0$export$c11d6cfb99c9fdfb).FORLOOP]: (controlItem)=>{
-        return "Loop: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
-    },
-    [(0, $6267764a9e4139a0$export$c11d6cfb99c9fdfb).FUNCTIONINDEXWRAPPER]: (controlItem)=>{
-        return "Function Index Wrapper";
-    },
-    [(0, $6267764a9e4139a0$export$c11d6cfb99c9fdfb).MEMORY_LOAD]: (controlItem)=>{
-        return "Memory Load: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
-    },
-    [(0, $6267764a9e4139a0$export$c11d6cfb99c9fdfb).MEMORY_STORE]: (controlItem)=>{
-        return "Memory Store: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
-    },
-    [(0, $6267764a9e4139a0$export$c11d6cfb99c9fdfb).POP]: (controlItem)=>{
-        return "Pop";
-    },
-    [(0, $6267764a9e4139a0$export$c11d6cfb99c9fdfb).STACKFRAMETEARDOWNINSTRUCTION]: (controlItem)=>{
-        return "Stack tear down";
-    },
-    [(0, $6267764a9e4139a0$export$c11d6cfb99c9fdfb).UNARY_OP]: (controlItem)=>{
-        return "Unary operation: " + controlItem.operator;
-    },
-    [(0, $6267764a9e4139a0$export$c11d6cfb99c9fdfb).WHILE]: (controlItem)=>{
-        return "While loop: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
-    }
-};
-const $29d5c7e8e9cfab6e$export$6b717a7b89b3aa = {
-    ExpressionStatement: (controlItem)=>{
-        return "Expression: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
-    },
-    SelectionStatement: (controlItem)=>{
-        return "Selection: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
-    },
-    DoWhileLoop: (controlItem)=>{
-        return "DoWhile: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
-    },
-    WhileLoop: (controlItem)=>{
-        return "WhileLoop: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
-    },
-    ForLoop: (controlItem)=>{
-        return "ForLoop: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
-    },
-    ReturnStatement: (controlItem)=>{
-        return "Return Statement: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
-    },
-    BreakStatement: (controlItem)=>{
-        return "Break: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
-    },
-    ContinueStatement: (controlItem)=>{
-        return "Continue Statement";
-    },
-    SwitchStatement: (controlItem)=>{
-        return "Switch: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
-    },
-    MemoryLoad: (controlItem)=>{
-        return "Memory Load Node: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
-    },
-    FunctionTableIndex: (controlItem)=>{
-        const funcIndex = controlItem.index.value;
-        if (funcIndex < 0 || funcIndex > (0, $bf9b58631501cd70$export$269330a1f1074312).astRootP.functionTable.length) throw new Error("Index of desired function out of bounds");
-        const funcName = (0, $bf9b58631501cd70$export$269330a1f1074312).astRootP.functionTable[Number(funcIndex)].functionName;
-        return funcName;
-    },
-    MemoryStore: (controlItem)=>{
-        return "Memory Store Node: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
-    },
-    LocalAddress: (controlItem)=>{
-        return "Local Address: " + controlItem.offset.value.toString();
-    },
-    DataSegmentAddress: (controlItem)=>{
-        return "Data Segment Address: " + controlItem.offset.value.toString();
-    },
-    ReturnObjectAddress: (controlItem)=>{
-        return "Return Object Address: " + controlItem.offset.value.toString();
-    },
-    DynamicAddress: (controlItem)=>{
-        return "Dynamic Address: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem.address);
-    },
-    FunctionCall: (controlItem)=>{
-        return "Function call: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
-    },
-    IntegerConstant: (controlItem)=>{
-        return controlItem.value.toString();
-    },
-    FloatConstant: (controlItem)=>{
-        return controlItem.value.toString();
-    },
-    BinaryExpression: (controlItem)=>{
-        return "Binary ExpressionP: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
-    },
-    UnaryExpression: (controlItem)=>{
-        return "UnaryExpressionP: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
-    },
-    PreStatementExpression: (controlItem)=>{
-        return "PreStatemetn: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
-    },
-    PostStatementExpression: (controlItem)=>{
-        return "PostStatement: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
-    },
-    ConditionalExpression: (controlItem)=>{
-        return "Conditional: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
-    },
-    FunctionDefinition: (controlItem)=>{
-        return "Function: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
-    }
-};
 
 
 class $5577eaa48f4a17ce$export$34c280ece72e7eaa {
@@ -25921,10 +25770,173 @@ class $8c698c0438819abb$export$85b768e21d5f5a71 {
 }
 
 
+function $29d5c7e8e9cfab6e$export$67beed298888a38b(astRootNode, includedModules, moduleConfig, sourceCode) {
+    const interpreter = new (0, $8c91e30fbe002c74$export$e5b52c46a548ff03)(astRootNode, includedModules, moduleConfig, sourceCode, new (0, $8c698c0438819abb$export$85b768e21d5f5a71)());
+    interpreter.interpret();
+}
+async function $29d5c7e8e9cfab6e$export$3567556d58c2cae(astRootNode, includedModules, moduleConfig, targetStep, sourceCode, memoryManager) {
+    const interpreter = new (0, $8c91e30fbe002c74$export$e5b52c46a548ff03)(astRootNode, includedModules, moduleConfig, sourceCode, memoryManager);
+    return await interpreter.interpretTillStep(targetStep);
+}
+function $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem) {
+    const codePosition = controlItem.position;
+    // extract the code position at a line start and line end
+    const lines = (0, $bf9b58631501cd70$export$269330a1f1074312).sourceCode.split("\n");
+    const extractedCode = lines.slice(codePosition.start.line - 1, codePosition.end.line).filter((line)=>line.trim() !== "");
+    if (extractedCode.length > 0) {
+        extractedCode[0] = extractedCode[0].slice(codePosition.start.column - 1);
+        extractedCode[extractedCode.length - 1] = extractedCode[extractedCode.length - 1].slice(0, codePosition.end.column - 1);
+    }
+    return extractedCode.join("\n");
+}
+function $29d5c7e8e9cfab6e$export$7b429031fe89ea9f(controlItem) {
+    if ((0, $6267764a9e4139a0$export$517b0c6d75337fc8)(controlItem)) {
+        const type = controlItem.type;
+        const fn = $29d5c7e8e9cfab6e$export$e8a8d0ca26dbf9c6[type];
+        if (fn) return fn(controlItem);
+    } else {
+        const type = controlItem.type;
+        const fn = $29d5c7e8e9cfab6e$export$6b717a7b89b3aa[type];
+        if (fn) return fn(controlItem);
+    }
+    throw new Error("Unknown instruction type");
+}
+const $29d5c7e8e9cfab6e$export$e8a8d0ca26dbf9c6 = {
+    [(0, $6267764a9e4139a0$export$c11d6cfb99c9fdfb).BINARY_OP]: (controlItem)=>{
+        return "Binary operator: " + controlItem.operator;
+    },
+    [(0, $6267764a9e4139a0$export$c11d6cfb99c9fdfb).BRANCH]: (controlItem)=>{
+        const extractedCode = $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
+        return "Branch instruction: " + extractedCode;
+    },
+    [(0, $6267764a9e4139a0$export$c11d6cfb99c9fdfb).BREAK_MARK]: (controlItem)=>{
+        return "Break Mark";
+    },
+    [(0, $6267764a9e4139a0$export$c11d6cfb99c9fdfb).CALLINSTRUCTION]: (controlItem)=>{
+        return "Call Function";
+    },
+    [(0, $6267764a9e4139a0$export$c11d6cfb99c9fdfb).CASE_JUMP]: (controlItem)=>{
+        return "Case Jump";
+    },
+    [(0, $6267764a9e4139a0$export$c11d6cfb99c9fdfb).CASE_MARK]: (controlItem)=>{
+        return "Case Mark";
+    },
+    [(0, $6267764a9e4139a0$export$c11d6cfb99c9fdfb).CONTINUE_MARK]: (controlItem)=>{
+        return "Continue Mark";
+    },
+    [(0, $6267764a9e4139a0$export$c11d6cfb99c9fdfb).FORLOOP]: (controlItem)=>{
+        return "Loop: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
+    },
+    [(0, $6267764a9e4139a0$export$c11d6cfb99c9fdfb).FUNCTIONINDEXWRAPPER]: (controlItem)=>{
+        return "Function Index Wrapper";
+    },
+    [(0, $6267764a9e4139a0$export$c11d6cfb99c9fdfb).MEMORY_LOAD]: (controlItem)=>{
+        return "Memory Load: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
+    },
+    [(0, $6267764a9e4139a0$export$c11d6cfb99c9fdfb).MEMORY_STORE]: (controlItem)=>{
+        return "Memory Store: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
+    },
+    [(0, $6267764a9e4139a0$export$c11d6cfb99c9fdfb).POP]: (controlItem)=>{
+        return "Pop";
+    },
+    [(0, $6267764a9e4139a0$export$c11d6cfb99c9fdfb).STACKFRAMETEARDOWNINSTRUCTION]: (controlItem)=>{
+        return "Stack tear down";
+    },
+    [(0, $6267764a9e4139a0$export$c11d6cfb99c9fdfb).UNARY_OP]: (controlItem)=>{
+        return "Unary operation: " + controlItem.operator;
+    },
+    [(0, $6267764a9e4139a0$export$c11d6cfb99c9fdfb).WHILE]: (controlItem)=>{
+        return "While loop: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
+    }
+};
+const $29d5c7e8e9cfab6e$export$6b717a7b89b3aa = {
+    ExpressionStatement: (controlItem)=>{
+        return "Expression: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
+    },
+    SelectionStatement: (controlItem)=>{
+        return "Selection: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
+    },
+    DoWhileLoop: (controlItem)=>{
+        return "DoWhile: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
+    },
+    WhileLoop: (controlItem)=>{
+        return "WhileLoop: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
+    },
+    ForLoop: (controlItem)=>{
+        return "ForLoop: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
+    },
+    ReturnStatement: (controlItem)=>{
+        return "Return Statement: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
+    },
+    BreakStatement: (controlItem)=>{
+        return "Break: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
+    },
+    ContinueStatement: (controlItem)=>{
+        return "Continue Statement";
+    },
+    SwitchStatement: (controlItem)=>{
+        return "Switch: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
+    },
+    MemoryLoad: (controlItem)=>{
+        return "Memory Load Node: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
+    },
+    FunctionTableIndex: (controlItem)=>{
+        const funcIndex = controlItem.index.value;
+        if (funcIndex < 0 || funcIndex > (0, $bf9b58631501cd70$export$269330a1f1074312).astRootP.functionTable.length) throw new Error("Index of desired function out of bounds");
+        const funcName = (0, $bf9b58631501cd70$export$269330a1f1074312).astRootP.functionTable[Number(funcIndex)].functionName;
+        return funcName;
+    },
+    MemoryStore: (controlItem)=>{
+        return "Memory Store Node: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
+    },
+    LocalAddress: (controlItem)=>{
+        return "Local Address: " + controlItem.offset.value.toString();
+    },
+    DataSegmentAddress: (controlItem)=>{
+        return "Data Segment Address: " + controlItem.offset.value.toString();
+    },
+    ReturnObjectAddress: (controlItem)=>{
+        return "Return Object Address: " + controlItem.offset.value.toString();
+    },
+    DynamicAddress: (controlItem)=>{
+        return "Dynamic Address: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem.address);
+    },
+    FunctionCall: (controlItem)=>{
+        return "Function call: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
+    },
+    IntegerConstant: (controlItem)=>{
+        return controlItem.value.toString();
+    },
+    FloatConstant: (controlItem)=>{
+        return controlItem.value.toString();
+    },
+    BinaryExpression: (controlItem)=>{
+        return "Binary ExpressionP: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
+    },
+    UnaryExpression: (controlItem)=>{
+        return "UnaryExpressionP: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
+    },
+    PreStatementExpression: (controlItem)=>{
+        return "PreStatemetn: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
+    },
+    PostStatementExpression: (controlItem)=>{
+        return "PostStatement: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
+    },
+    ConditionalExpression: (controlItem)=>{
+        return "Conditional: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
+    },
+    FunctionDefinition: (controlItem)=>{
+        return "Function: " + $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem);
+    }
+};
+
+
+
 async function $c20cbec167d66736$export$ef7acd7185315e22(cSourceCode, moduleRepository) {
     try {
         const { cAstRoot: cAstRoot, warnings: warnings } = (0, $812b9a955e75cbf9$export$2e2bcd8739ae039)(cSourceCode, moduleRepository);
-        const { astRootNode: astRootNode, includedModules: includedModules, warnings: processorWarnings } = (0, $3bbec8f49ad76a86$export$2e2bcd8739ae039)(cAstRoot, moduleRepository);
+        const memoryManager = new (0, $8c698c0438819abb$export$85b768e21d5f5a71)();
+        const { astRootNode: astRootNode, includedModules: includedModules, warnings: processorWarnings } = (0, $3bbec8f49ad76a86$export$2e2bcd8739ae039)(cAstRoot, moduleRepository, memoryManager);
         warnings.push(...processorWarnings.map((w)=>(0, $28ac839a9eca26f5$export$9a24d8f7b932fdc5)(w.message, cSourceCode, w.position)));
         const wasmModule = (0, $edd1d19f265dea24$export$2e2bcd8739ae039)(astRootNode, moduleRepository);
         const output = await (0, $35ff0e651cf79adf$export$244319998795f476)((0, $df2c68a1897a685b$export$38d6b8478af371c3)(wasmModule));
@@ -25955,7 +25967,6 @@ async function $c20cbec167d66736$export$fef61f332f2c0afc(cSourceCode, moduleRepo
         const { astRootNode: astRootNode, includedModules: includedModules, warnings: processorWarnings } = (0, $3bbec8f49ad76a86$export$2e2bcd8739ae039)(cAstRoot, moduleRepository, memoryManager);
         warnings.push(...processorWarnings.map((w)=>(0, $28ac839a9eca26f5$export$9a24d8f7b932fdc5)(w.message, cSourceCode, w.position)));
         const outputContext = await (0, $29d5c7e8e9cfab6e$export$3567556d58c2cae)(astRootNode, cAstRoot.includedModules, moduleRepository.config, targetStep, cSourceCode, memoryManager);
-        console.log(memoryManager.debugPrint());
         return {
             status: "success",
             context: outputContext,
@@ -25976,7 +25987,8 @@ async function $c20cbec167d66736$export$fef61f332f2c0afc(cSourceCode, moduleRepo
 function $c20cbec167d66736$export$7ed1e80d6eebb0bb(cSourceCode, moduleRepository) {
     try {
         const { cAstRoot: cAstRoot, warnings: warnings } = (0, $812b9a955e75cbf9$export$2e2bcd8739ae039)(cSourceCode, moduleRepository);
-        const { astRootNode: astRootNode, warnings: processorWarnings } = (0, $3bbec8f49ad76a86$export$2e2bcd8739ae039)(cAstRoot, moduleRepository);
+        const memoryManager = new (0, $8c698c0438819abb$export$85b768e21d5f5a71)();
+        const { astRootNode: astRootNode, warnings: processorWarnings } = (0, $3bbec8f49ad76a86$export$2e2bcd8739ae039)(cAstRoot, moduleRepository, memoryManager);
         warnings.push(...processorWarnings.map((w)=>(0, $28ac839a9eca26f5$export$9a24d8f7b932fdc5)(w.message, cSourceCode, w.position)));
         const wasmModule = (0, $edd1d19f265dea24$export$2e2bcd8739ae039)(astRootNode, moduleRepository);
         const output = (0, $df2c68a1897a685b$export$38d6b8478af371c3)(wasmModule);
@@ -26009,7 +26021,8 @@ function $c20cbec167d66736$export$fbcbb0932d163f5c(cSourceCode, moduleRepository
 function $c20cbec167d66736$export$9d0f5d4929a5c5ad(cSourceCode, moduleRepository) {
     try {
         const { cAstRoot: cAstRoot } = (0, $812b9a955e75cbf9$export$2e2bcd8739ae039)(cSourceCode, moduleRepository);
-        const { astRootNode: astRootNode } = (0, $3bbec8f49ad76a86$export$2e2bcd8739ae039)(cAstRoot, moduleRepository);
+        const memoryManager = new (0, $8c698c0438819abb$export$85b768e21d5f5a71)();
+        const { astRootNode: astRootNode } = (0, $3bbec8f49ad76a86$export$2e2bcd8739ae039)(cAstRoot, moduleRepository, memoryManager);
         return (0, $28ac839a9eca26f5$export$d5b7a8bf56ee1fe2)(astRootNode);
     } catch (e) {
         if (e instanceof (0, $28ac839a9eca26f5$export$53d7a5fe44e5fb7e)) e.generateCompilationErrorMessage(cSourceCode);
@@ -26018,19 +26031,20 @@ function $c20cbec167d66736$export$9d0f5d4929a5c5ad(cSourceCode, moduleRepository
 }
 function $c20cbec167d66736$export$d54d1a0fdc0ee87e(cSourceCode, moduleRepository) {
     const { cAstRoot: cAstRoot } = (0, $812b9a955e75cbf9$export$2e2bcd8739ae039)(cSourceCode, moduleRepository);
-    const { astRootNode: astRootNode } = (0, $3bbec8f49ad76a86$export$2e2bcd8739ae039)(cAstRoot, moduleRepository);
+    const memoryManager = new (0, $8c698c0438819abb$export$85b768e21d5f5a71)();
+    const { astRootNode: astRootNode } = (0, $3bbec8f49ad76a86$export$2e2bcd8739ae039)(cAstRoot, moduleRepository, memoryManager);
     //checkForErrors(cSourceCode, CAst, Object.keys(wasmModuleImports)); // use semantic analyzer to check for semantic errors
     const wasmAst = (0, $edd1d19f265dea24$export$2e2bcd8739ae039)(astRootNode, moduleRepository);
     return (0, $28ac839a9eca26f5$export$d5b7a8bf56ee1fe2)(wasmAst);
-} // export function interpret_C_AST(
- //   cSourceCode: string,
- //   moduleRepository: ModuleRepository,
- //   moduleConfig: ModulesGlobalConfig,
- // ) {
- //   const { cAstRoot } = parse(cSourceCode, moduleRepository);
- //   const { astRootNode } = process(cAstRoot, moduleRepository);
- //   interpret(astRootNode, cAstRoot.includedModules, moduleConfig, cSourceCode);
- // }
+}
+function $c20cbec167d66736$export$a0451f39bcc24e74(cSourceCode, moduleRepository, moduleConfig) {
+    const { cAstRoot: cAstRoot } = (0, $812b9a955e75cbf9$export$2e2bcd8739ae039)(cSourceCode, moduleRepository);
+    const { astRootNode: astRootNode } = (0, $3bbec8f49ad76a86$export$2e2bcd8739ae039)(cAstRoot, moduleRepository, new (0, $8c698c0438819abb$export$85b768e21d5f5a71)());
+    (0, $29d5c7e8e9cfab6e$export$67beed298888a38b)(astRootNode, cAstRoot.includedModules, moduleConfig, cSourceCode);
+}
+
+
+
 
 
 
@@ -26043,6 +26057,11 @@ function $149c1bd638913645$export$7ed1e80d6eebb0bb(program) {
 }
 function $149c1bd638913645$export$d54d1a0fdc0ee87e(program) {
     return (0, $c20cbec167d66736$export$d54d1a0fdc0ee87e)(program, $149c1bd638913645$export$e6fa218cf6f57ac3);
+}
+function $149c1bd638913645$export$a0451f39bcc24e74(program, modulesConfig) {
+    const { cAstRoot: cAstRoot } = (0, $812b9a955e75cbf9$export$2e2bcd8739ae039)(program, $149c1bd638913645$export$e6fa218cf6f57ac3);
+    const { astRootNode: astRootNode } = (0, $3bbec8f49ad76a86$export$2e2bcd8739ae039)(cAstRoot, $149c1bd638913645$export$e6fa218cf6f57ac3, new (0, $8c698c0438819abb$export$85b768e21d5f5a71)());
+    (0, $29d5c7e8e9cfab6e$export$67beed298888a38b)(astRootNode, cAstRoot.includedModules, modulesConfig, program);
 }
 async function $149c1bd638913645$export$fef61f332f2c0afc(program, modulesConfig, targetStep) {
     return await (0, $c20cbec167d66736$export$fef61f332f2c0afc)(program, $149c1bd638913645$export$e6fa218cf6f57ac3, targetStep);
@@ -26083,5 +26102,5 @@ function $149c1bd638913645$export$fbcbb0932d163f5c(program) {
 }
 
 
-export {$149c1bd638913645$export$e6fa218cf6f57ac3 as defaultModuleRepository, $149c1bd638913645$export$7ed1e80d6eebb0bb as compileToWat, $149c1bd638913645$export$d54d1a0fdc0ee87e as generate_WAT_AST, $149c1bd638913645$export$fef61f332f2c0afc as evaluate, $149c1bd638913645$export$ef7acd7185315e22 as compile, $149c1bd638913645$export$528d7c97418b1bdd as compileAndRun, $149c1bd638913645$export$9a15f6f70b6cc031 as runWasm, $149c1bd638913645$export$9d0f5d4929a5c5ad as generate_processed_C_AST, $149c1bd638913645$export$fbcbb0932d163f5c as generate_C_AST, $6267764a9e4139a0$export$c11d6cfb99c9fdfb as InstructionType, $29d5c7e8e9cfab6e$export$7b429031fe89ea9f as controlItemToString};
+export {$149c1bd638913645$export$e6fa218cf6f57ac3 as defaultModuleRepository, $149c1bd638913645$export$7ed1e80d6eebb0bb as compileToWat, $149c1bd638913645$export$d54d1a0fdc0ee87e as generate_WAT_AST, $149c1bd638913645$export$a0451f39bcc24e74 as interpret_C_AST, $149c1bd638913645$export$fef61f332f2c0afc as evaluate, $149c1bd638913645$export$ef7acd7185315e22 as compile, $149c1bd638913645$export$528d7c97418b1bdd as compileAndRun, $149c1bd638913645$export$9a15f6f70b6cc031 as runWasm, $149c1bd638913645$export$9d0f5d4929a5c5ad as generate_processed_C_AST, $149c1bd638913645$export$fbcbb0932d163f5c as generate_C_AST, $6267764a9e4139a0$export$c11d6cfb99c9fdfb as InstructionType, $29d5c7e8e9cfab6e$export$7b429031fe89ea9f as controlItemToString};
 //# sourceMappingURL=index.js.map

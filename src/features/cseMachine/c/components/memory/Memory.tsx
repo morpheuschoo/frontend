@@ -9,7 +9,7 @@ import { CseMachine } from '../../CseMachine';
 import { CVisible } from '../../CVisible';
 import { DataSegmentVis } from '../dataSegment/DataSegmentVis';
 import { HeapVis } from '../heap/HeapVis';
-import { StackVis } from '../stack/StackVis';
+import { StackVis } from '../Stack/StackVis';
 
 export class Memory extends CVisible {
   textProps = {

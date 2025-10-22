@@ -6,7 +6,6 @@ import { CControlStashMemoryConfig } from '../../config/CControlStashMemoryConfi
 import { ShapeDefaultProps } from '../../config/CCSEMachineConfig';
 import { CseMachine } from '../../CseMachine';
 import { CVisible } from '../../CVisible';
-import { topToBottom } from '../../utils';
 import { MemoryRow } from '../memory/MemoryRow';
 import { MemorySegment } from '../memory/MemorySegment';
 
@@ -26,11 +25,11 @@ export class StackFrameVis extends CVisible {
 
     for (let i = frame.stackPointer; i <= frame.basePointer + frame.sizeOfReturn - 3; i += 4) {
       const newRow =
-        new MemoryRow(i, memory.memory.buffer.slice(i, i + 4), 0, 0, );
+        new MemoryRow(i, this.memory.memory.buffer.slice(i, i + 4), 0, 0, );
       byteRows.push(newRow);
     }
     this._width = CControlStashMemoryConfig.memoryRowWidth;
-    this._height = CControlStashMemoryConfig.memoryRowHeight + CControlStashMemoryConfig.memoryRowPadding;
+    this._height = CControlStashMemoryConfig.memoryRowHeight * 2 + CControlStashMemoryConfig.memoryRowPadding;
     this.memorySegment = new MemorySegment(
       byteRows,
       0,
