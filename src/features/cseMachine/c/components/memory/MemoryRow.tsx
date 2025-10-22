@@ -38,7 +38,7 @@ export class MemoryRow extends CVisible {
 
     return (
       <KonvaGroup key={CseMachine.key++}>
-        <Rect 
+        <Rect
           x={this.x()}
           y={this.y()}
           width={this.width()}

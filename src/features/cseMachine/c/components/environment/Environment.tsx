@@ -7,6 +7,7 @@ import { CControlStashMemoryConfig } from '../../config/CControlStashMemoryConfi
 import { CConfig } from '../../config/CCSEMachineConfig';
 import { CseMachine } from '../../CseMachine';
 import { CVisible } from '../../CVisible';
+import { BindingDimensionMap } from '../ui/binding/BindingDimensionMap';
 import { Frame } from './Frame';
 
 export class Environment extends CVisible {
@@ -14,6 +15,7 @@ export class Environment extends CVisible {
   private readonly _objects: Obj[] = [];
   private readonly _classFrames: Frame[] = [];
   private readonly _lines: Line[] = [];
+  private readonly bindingDimensionMap: BindingDimensionMap = new BindingDimensionMap();
 
   constructor(stackFrames: StackFrame[]) {
     super();
@@ -33,10 +35,12 @@ export class Environment extends CVisible {
     let methodFramesY: number = this._y;
     let methodFramesWidth = Number(CConfig.FrameMinWidth);
 
+    const reversedFrames = [...stackFrames].reverse();
     let parentFrame: Frame | undefined = undefined;
-    stackFrames.forEach(frame => {
+
+    reversedFrames.forEach(frame => {
       const stroke = '#999';
-      const newFrame = new Frame(frame, methodFramesX, methodFramesY, stroke);
+      const newFrame = new Frame(frame, methodFramesX, methodFramesY, stroke, this.bindingDimensionMap);
       this._methodFrames.push(newFrame);
       methodFramesY += newFrame.height() + CConfig.FramePaddingY;
       methodFramesWidth = Math.max(methodFramesWidth, newFrame.width());
@@ -46,6 +50,8 @@ export class Environment extends CVisible {
       }
       parentFrame = newFrame;
     });
+
+    this._methodFrames.forEach(frame => frame.updateValues());
   }
 
   get classes() {

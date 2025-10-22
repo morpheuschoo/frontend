@@ -25,7 +25,7 @@ export class StackFrameVis extends CVisible {
     const byteRows: MemoryRow[] = [];
 
     for (let i = frame.stackPointer; i <= frame.basePointer + frame.sizeOfReturn - 3; i += 4) {
-      const newRow = 
+      const newRow =
         new MemoryRow(i, memory.memory.buffer.slice(i, i + 4), 0, 0, );
       byteRows.push(newRow);
     }
@@ -40,14 +40,13 @@ export class StackFrameVis extends CVisible {
   }
 
   draw(key?: number): React.ReactNode {
-    console.log(this.frame, this.memory, 'FUK YOUs');
     // if (!this.frame || !this.memory) {
     //   throw new Error('Cannot draw memory stack frame where fields are not instantiated');
     // }
 
     return (
       <KonvaGroup key={CseMachine.key++} x={this.x()} y={this.y()}>
-        <Rect 
+        <Rect
           {...ShapeDefaultProps}
           width={this.width()}
           height={this.height()}

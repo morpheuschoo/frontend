@@ -11,7 +11,8 @@ import { CControlStashMemoryConfig } from '../../config/CControlStashMemoryConfi
 import { CConfig, ShapeDefaultProps } from '../../config/CCSEMachineConfig';
 import { CseMachine } from '../../CseMachine';
 import { CVisible } from '../../CVisible';
-import { Binding } from '../ui/Binding';
+import { Binding } from '../ui/binding/Binding';
+import { BindingDimensionMap } from '../ui/binding/BindingDimensionMap';
 import { Text } from '../ui/Text';
 
 export class Frame extends CVisible implements IHoverable {
@@ -27,6 +28,7 @@ export class Frame extends CVisible implements IHoverable {
     y: number,
     readonly stroke: string,
 
+    private dimensionMap: BindingDimensionMap,
     readonly tooltip?: string,
     readonly highlightOnHover?: () => void,
     readonly unhighlightOnHover?: () => void
@@ -49,10 +51,11 @@ export class Frame extends CVisible implements IHoverable {
     for (const [key, data] of frame.variablesMap) {
       const currBinding: Binding = new Binding(
         key,
-        data.value || 0,
         data.dataType,
         this._x + CConfig.FramePaddingX,
-        bindingY
+        bindingY,
+        frame,
+        this.dimensionMap
       );
       this.bindings.push(currBinding);
       bindingY += currBinding.height() + CConfig.FramePaddingY;
@@ -69,6 +72,14 @@ export class Frame extends CVisible implements IHoverable {
       });
 
     this.tooltipRef = React.createRef();
+  }
+
+  updateValues() {
+    let i = 0;
+    for (const [_, data] of this.frame.variablesMap) {
+      this.bindings[i].updateValue(data.value || 0, data.dataType);
+      i++;
+    }
   }
 
   setWidth(width: number) {

@@ -20601,114 +20601,6 @@ function $812b9a955e75cbf9$export$2e2bcd8739ae039(sourceCode, moduleRepository) 
  */ /**
  * Utility functions for processing C functions.
  */ 
-class $5577eaa48f4a17ce$export$34c280ece72e7eaa {
-    constructor(name, scope, offset){
-        this.name = name;
-        this.scope = scope;
-        this.offset = offset;
-    }
-    toString() {
-        return `${this.scope}::${this.name}::${this.offset.toString()}`;
-    }
-}
-class $5577eaa48f4a17ce$export$ab3828307dd6d09 {
-    addVariable(name, entry) {
-        const scopedName = this.getScopedName(name);
-        this.addressMap.set(new $5577eaa48f4a17ce$export$34c280ece72e7eaa(name, scopedName, entry.offset).toString(), entry);
-    }
-    // getVariableAddress(name: string): MemoryAddressEntry | undefined {
-    //   const scopedName = this.getScopedName(name);
-    //   if (this.addressMap.has(scopedName)) {
-    //     return this.addressMap.get(scopedName);
-    //   }
-    //   if (this.addressMap.has(name)) {
-    //     return this.addressMap.get(name);
-    //   }
-    //   return undefined;
-    // }
-    // getEffectiveAddress(name: string): number | undefined {
-    //   const entry = this.getVariableAddress(name);
-    //   if (!entry) return undefined;
-    //   return entry.absoluteAddress !== undefined
-    //     ? entry.absoluteAddress
-    //     : entry.offset;
-    // }
-    pushScope(scopeName) {
-        this.scopeChain.push(scopeName);
-    }
-    popScope() {
-        return this.scopeChain.pop();
-    }
-    getScopedName(name) {
-        if (this.scopeChain.length === 0) return name;
-        return this.scopeChain[this.scopeChain.length - 1];
-    // return `${this.scopeChain.join(".")}.${name}`;
-    }
-    static buildFromSymbolTable(symbolTable, getDataTypeSize) {
-        const map = new $5577eaa48f4a17ce$export$ab3828307dd6d09();
-        function processSymbolTable(table, isGlobal) {
-            if (!isGlobal) map.pushScope(getFunctionNameFromSymbolTable(table));
-            for (const [name, entry] of Object.entries(table.symbols))if (entry.type === "localVariable" || entry.type === "dataSegmentVariable") {
-                const varEntry = entry;
-                map.addVariable(name, {
-                    name: name,
-                    offset: varEntry.offset,
-                    isGlobal: entry.type === "dataSegmentVariable",
-                    size: getDataTypeSize(varEntry.dataType),
-                    dataType: varEntry.dataType
-                });
-            }
-            if (!isGlobal) map.popScope();
-        }
-        function getFunctionNameFromSymbolTable(table) {
-            return "function_" + Math.random().toString(36).substring(2, 9);
-        }
-        processSymbolTable($5577eaa48f4a17ce$var$getRootSymbolTable(symbolTable), true);
-        $5577eaa48f4a17ce$var$processFunctionScopes(symbolTable, processSymbolTable);
-        return map;
-    }
-    debugPrint() {
-        console.log("=== Memory Address Map ===");
-        // Convert the Map to an array for easier logging
-        const entries = [];
-        this.addressMap.forEach((entry, name)=>{
-            const parts = name.split("::");
-            if (!parts[1]) throw new Error("Cannot parse MemoryAddressKey");
-            entries.push([
-                parts[1],
-                entry
-            ]);
-        });
-        // Sort by address for cleaner output
-        entries.sort((a, b)=>a[1].offset - b[1].offset);
-        entries.forEach(([name, entry])=>{
-            console.log(`${name.padEnd(20)} | ${entry.isGlobal ? "Global" : "Local"} | ` + `Offset: ${entry.offset} | Size: ${entry.size} bytes`);
-        });
-        console.log("========================");
-    }
-    getAddressMap() {
-        return this.addressMap;
-    }
-    constructor(){
-        this.addressMap = new Map();
-        this.scopeChain = [];
-    }
-}
-function $5577eaa48f4a17ce$var$getRootSymbolTable(symbolTable) {
-    let current = symbolTable;
-    while(current.parentTable !== null)current = current.parentTable;
-    return current;
-}
-function $5577eaa48f4a17ce$var$processFunctionScopes(symbolTable, processFn) {
-    const functionNames = [];
-    for (const [name, entry] of Object.entries(symbolTable.symbols))if (entry.type === "function") functionNames.push(name);
-    console.log(`Found ${functionNames.length} functions to process`);
-    for (const entry of symbolTable.functionTable)if (entry.isDefined) {
-        const functionName = entry.functionName;
-        console.log(`Processing local variables for function: ${functionName}`);
-        processFn(symbolTable, false);
-    }
-}
 
 
 /**
@@ -20825,13 +20717,13 @@ function $ad114c17e3ec942a$export$3b62aaa538d69da7(dataType) {
     }
     return true;
 }
-function $ad114c17e3ec942a$export$ac7287207bedb81b(assignmentNode, symbolTable) {
+function $ad114c17e3ec942a$export$ac7287207bedb81b(assignmentNode, symbolTable, memoryManager) {
     // the memory load instructions from processing the expression being assigned to as an expression
-    const assignedMemoryLoadExprs = (0, $551bb05b84852d99$export$2e2bcd8739ae039)(assignmentNode.lvalue, symbolTable);
+    const assignedMemoryLoadExprs = (0, $551bb05b84852d99$export$2e2bcd8739ae039)(assignmentNode.lvalue, symbolTable, memoryManager);
     const lvalueDataType = (0, $278774b275ed49b9$export$eb27e3f48ee2e547)({
         expression: assignedMemoryLoadExprs
     });
-    const assignee = (0, $551bb05b84852d99$export$2e2bcd8739ae039)(assignmentNode.expr, symbolTable);
+    const assignee = (0, $551bb05b84852d99$export$2e2bcd8739ae039)(assignmentNode.expr, symbolTable, memoryManager);
     const assigneeDataType = (0, $278774b275ed49b9$export$eb27e3f48ee2e547)({
         expression: assignee,
         convertArrayToPointer: true,
@@ -21088,13 +20980,12 @@ function $aa6e51d54352829d$export$2e2bcd8739ae039(enumDeclaration, symbolTable) 
 }
 
 
-
-function $de78ebef6c7c100a$export$f3f7c2f7637d5845(declaration, symbolTable, enclosingFunc) {
+function $de78ebef6c7c100a$export$f3f7c2f7637d5845(declaration, symbolTable, enclosingFunc, memoryManager) {
     if (declaration.type === "Declaration") {
-        let symbolEntry = symbolTable.addEntry(declaration);
+        let symbolEntry = symbolTable.addEntry(declaration, memoryManager);
         if (symbolEntry.type !== "function") {
             const varEntry = symbolEntry;
-            (0, $8c698c0438819abb$export$8f5345d7eb869598).getAddressMap().addVariable(declaration.name, {
+            memoryManager.getAddressMap().addVariable(declaration.name, {
                 name: declaration.name,
                 offset: varEntry.offset,
                 isGlobal: varEntry.type === "dataSegmentVariable",
@@ -21106,7 +20997,7 @@ function $de78ebef6c7c100a$export$f3f7c2f7637d5845(declaration, symbolTable, enc
         if (typeof enclosingFunc !== "undefined") enclosingFunc.sizeOfLocals += (0, $5320ef4601c98354$export$1713163196af6553)(declaration.dataType);
         symbolEntry; // definitely not dealing with a function declaration already
         // We have already allocated space for data segment variables, no more memory statements are needed
-        if (typeof declaration.initializer !== "undefined" && symbolEntry.type !== "dataSegmentVariable") return $de78ebef6c7c100a$export$3bfb4b35e5043c1c(symbolEntry, declaration.initializer, symbolTable);
+        if (typeof declaration.initializer !== "undefined" && symbolEntry.type !== "dataSegmentVariable") return $de78ebef6c7c100a$export$3bfb4b35e5043c1c(symbolEntry, declaration.initializer, symbolTable, memoryManager);
         else return [];
     } else if (declaration.type === "EnumDeclaration") {
         (0, $aa6e51d54352829d$export$2e2bcd8739ae039)(declaration, symbolTable);
@@ -21137,7 +21028,7 @@ function $de78ebef6c7c100a$export$8338518b683b1457(lvalue, expr) {
         convertFunctionToPointer: true
     }))}'`);
 }
-function $de78ebef6c7c100a$export$3bfb4b35e5043c1c(variableSymbolEntry, initializer, symbolTable) {
+function $de78ebef6c7c100a$export$3bfb4b35e5043c1c(variableSymbolEntry, initializer, symbolTable, memoryManager) {
     const memoryStoreStatements = [];
     let currOffset = variableSymbolEntry.offset; // offset to use for address in memory store statements
     $de78ebef6c7c100a$var$runInitializerChecks(variableSymbolEntry.dataType, initializer);
@@ -21149,7 +21040,7 @@ function $de78ebef6c7c100a$export$3bfb4b35e5043c1c(variableSymbolEntry, initiali
             else if (dataType.type === "enum") scalarDataType = (0, $cd849de488b21116$export$58b6502def2a4d77);
             else scalarDataType = dataType.primaryDataType;
             if (initializer.type === "InitializerSingle") {
-                const processedExpr = (0, $551bb05b84852d99$export$2e2bcd8739ae039)(initializer.value, symbolTable);
+                const processedExpr = (0, $551bb05b84852d99$export$2e2bcd8739ae039)(initializer.value, symbolTable, memoryManager);
                 if (dataType.type === "struct self pointer") $de78ebef6c7c100a$export$8338518b683b1457($de78ebef6c7c100a$var$createStructSelfPointerDataType(structBeingFilled), processedExpr);
                 else $de78ebef6c7c100a$export$8338518b683b1457(dataType, processedExpr);
                 memoryStoreStatements.push({
@@ -21229,7 +21120,7 @@ function $de78ebef6c7c100a$export$3bfb4b35e5043c1c(variableSymbolEntry, initiali
                     throw new (0, $28ac839a9eca26f5$export$f75c42204311f6de)("excess elements in initializer");
                     firstInitializer = firstInitializer.values[0];
                 }
-                const processedExpr = (0, $551bb05b84852d99$export$2e2bcd8739ae039)(firstInitializer.value, symbolTable);
+                const processedExpr = (0, $551bb05b84852d99$export$2e2bcd8739ae039)(firstInitializer.value, symbolTable, memoryManager);
                 // check assignability
                 if (dataType.type === "struct self pointer") $de78ebef6c7c100a$export$8338518b683b1457($de78ebef6c7c100a$var$createStructSelfPointerDataType(structBeingFilled), processedExpr);
                 else $de78ebef6c7c100a$export$8338518b683b1457(dataType, processedExpr);
@@ -21256,7 +21147,7 @@ function $de78ebef6c7c100a$export$3bfb4b35e5043c1c(variableSymbolEntry, initiali
                 else if (dataType.elementDataType.type === "struct") {
                     if (offset < initializer.values.length && initializer.values[offset].type === "InitializerSingle") {
                         // special handling in case the current initializer at offset is a struct expression
-                        const processedExpr = (0, $551bb05b84852d99$export$2e2bcd8739ae039)(initializer.values[offset].value, symbolTable);
+                        const processedExpr = (0, $551bb05b84852d99$export$2e2bcd8739ae039)(initializer.values[offset].value, symbolTable, memoryManager);
                         if (processedExpr.originalDataType.type === "struct") {
                             $de78ebef6c7c100a$export$8338518b683b1457(dataType.elementDataType, processedExpr);
                             const unpackedStruct = (0, $5320ef4601c98354$export$8b795b2cde35800)(dataType.elementDataType);
@@ -21293,7 +21184,7 @@ function $de78ebef6c7c100a$export$3bfb4b35e5043c1c(variableSymbolEntry, initiali
             }
         } else if (dataType.type === "struct") {
             if (initializer.type === "InitializerSingle") {
-                const processedExpr = (0, $551bb05b84852d99$export$2e2bcd8739ae039)(initializer.value, symbolTable);
+                const processedExpr = (0, $551bb05b84852d99$export$2e2bcd8739ae039)(initializer.value, symbolTable, memoryManager);
                 // handle direct initialization of struct with another struct
                 $de78ebef6c7c100a$export$8338518b683b1457(dataType, processedExpr);
                 const unpackedStruct = (0, $5320ef4601c98354$export$8b795b2cde35800)(dataType);
@@ -21330,13 +21221,13 @@ function $de78ebef6c7c100a$export$3bfb4b35e5043c1c(variableSymbolEntry, initiali
     helperWithExcessInitializerCheck(variableSymbolEntry.dataType, initializer);
     return memoryStoreStatements;
 }
-function $de78ebef6c7c100a$export$6a9ae9430f0feed9(declaration, symbolTable) {
-    if (declaration.type === "Declaration") $de78ebef6c7c100a$export$f3c64fd403ce8bb1(declaration, symbolTable);
+function $de78ebef6c7c100a$export$6a9ae9430f0feed9(declaration, symbolTable, memoryManager) {
+    if (declaration.type === "Declaration") $de78ebef6c7c100a$export$f3c64fd403ce8bb1(declaration, symbolTable, memoryManager);
     else if (declaration.type === "EnumDeclaration") (0, $aa6e51d54352829d$export$2e2bcd8739ae039)(declaration, symbolTable);
     else console.assert(false, "Unknown declaration type");
 }
-function $de78ebef6c7c100a$export$f3c64fd403ce8bb1(node, symbolTable) {
-    const symbolEntry = symbolTable.addEntry(node);
+function $de78ebef6c7c100a$export$f3c64fd403ce8bb1(node, symbolTable, memoryManager) {
+    const symbolEntry = symbolTable.addEntry(node, memoryManager);
     if (node.dataType.type === "function") {
         if (typeof node.initializer !== "undefined") throw new (0, $28ac839a9eca26f5$export$f75c42204311f6de)(`function '${node.name}' is initialized like a variable`);
         return;
@@ -21443,20 +21334,20 @@ function $cf264a5b1eb44de7$export$f7e4aa58fa839c4e() {
         inSwitch: false
     };
 }
-function $cf264a5b1eb44de7$var$processLoopBody(bodyStaement, symbolTable, enclosingFunc) {
+function $cf264a5b1eb44de7$var$processLoopBody(bodyStaement, symbolTable, enclosingFunc, memoryManager) {
     const originalInLoop = $cf264a5b1eb44de7$var$auxInfo.inLoop;
     $cf264a5b1eb44de7$var$auxInfo.inLoop = true;
-    const body = $cf264a5b1eb44de7$export$2e2bcd8739ae039(bodyStaement, symbolTable, enclosingFunc);
+    const body = $cf264a5b1eb44de7$export$2e2bcd8739ae039(bodyStaement, symbolTable, enclosingFunc, memoryManager);
     $cf264a5b1eb44de7$var$auxInfo.inLoop = originalInLoop;
     return body;
 }
-function $cf264a5b1eb44de7$export$2e2bcd8739ae039(node, symbolTable, enclosingFunc) {
+function $cf264a5b1eb44de7$export$2e2bcd8739ae039(node, symbolTable, enclosingFunc, memoryManager) {
     try {
         if (node.type === "Block") {
             const blockSymbolTable = new (0, $c5c9ce8d51254f39$export$777871f1ccd7bbc3)(symbolTable);
             const statements = [];
             node.statements.forEach((child)=>{
-                const result = $cf264a5b1eb44de7$export$2e2bcd8739ae039(child, blockSymbolTable, enclosingFunc);
+                const result = $cf264a5b1eb44de7$export$2e2bcd8739ae039(child, blockSymbolTable, enclosingFunc, memoryManager);
                 if (result === null) return;
                 else if (Array.isArray(result)) // A block was visited, returning an array of StatementP
                 result.forEach((statement)=>statements.push(statement));
@@ -21470,15 +21361,15 @@ function $cf264a5b1eb44de7$export$2e2bcd8739ae039(node, symbolTable, enclosingFu
                 // create new scope for this declaration
                 forLoopSymbolTable = new (0, $c5c9ce8d51254f39$export$777871f1ccd7bbc3)(symbolTable);
                 clause = [];
-                for (const declaration of node.clause.value)clause.push(...(0, $de78ebef6c7c100a$export$f3f7c2f7637d5845)(declaration, forLoopSymbolTable, enclosingFunc));
-            } else if (node.clause !== null && node.clause.type === "Expression") clause = $cf264a5b1eb44de7$export$2e2bcd8739ae039(node.clause.value, forLoopSymbolTable, enclosingFunc);
+                for (const declaration of node.clause.value)clause.push(...(0, $de78ebef6c7c100a$export$f3f7c2f7637d5845)(declaration, forLoopSymbolTable, enclosingFunc, memoryManager));
+            } else if (node.clause !== null && node.clause.type === "Expression") clause = $cf264a5b1eb44de7$export$2e2bcd8739ae039(node.clause.value, forLoopSymbolTable, enclosingFunc, memoryManager);
             else clause = [];
             const processedForLoopNode = {
                 type: "ForLoop",
                 clause: clause,
                 condition: node.condition !== null ? (0, $278774b275ed49b9$export$41f976199fdafdab)(node.condition, forLoopSymbolTable) : null,
-                update: node.update !== null ? $cf264a5b1eb44de7$export$2e2bcd8739ae039(node.update, forLoopSymbolTable, enclosingFunc) : [],
-                body: $cf264a5b1eb44de7$var$processLoopBody(node.body, forLoopSymbolTable, enclosingFunc),
+                update: node.update !== null ? $cf264a5b1eb44de7$export$2e2bcd8739ae039(node.update, forLoopSymbolTable, enclosingFunc, memoryManager) : [],
+                body: $cf264a5b1eb44de7$var$processLoopBody(node.body, forLoopSymbolTable, enclosingFunc, memoryManager),
                 position: node.position
             };
             return [
@@ -21488,7 +21379,7 @@ function $cf264a5b1eb44de7$export$2e2bcd8739ae039(node, symbolTable, enclosingFu
             {
                 type: node.type,
                 condition: (0, $278774b275ed49b9$export$41f976199fdafdab)(node.condition, symbolTable),
-                body: $cf264a5b1eb44de7$var$processLoopBody(node.body, symbolTable, enclosingFunc),
+                body: $cf264a5b1eb44de7$var$processLoopBody(node.body, symbolTable, enclosingFunc, memoryManager),
                 position: node.position
             }
         ];
@@ -21503,13 +21394,13 @@ function $cf264a5b1eb44de7$export$2e2bcd8739ae039(node, symbolTable, enclosingFu
             ];
             // there is an expression to return, break up the return into series of memory stores of the expression
             // in the return memory object locations
-            return (0, $b7e59eb4969f10fd$export$733f767a80574592)(node.value, symbolTable);
+            return (0, $b7e59eb4969f10fd$export$733f767a80574592)(node.value, symbolTable, memoryManager);
         } else if (node.type === "SelectionStatement") return [
             {
                 type: "SelectionStatement",
                 condition: (0, $278774b275ed49b9$export$41f976199fdafdab)(node.condition, symbolTable),
-                ifStatements: $cf264a5b1eb44de7$export$2e2bcd8739ae039(node.ifStatement, symbolTable, enclosingFunc),
-                elseStatements: node.elseStatement ? $cf264a5b1eb44de7$export$2e2bcd8739ae039(node.elseStatement, symbolTable, enclosingFunc) : null,
+                ifStatements: $cf264a5b1eb44de7$export$2e2bcd8739ae039(node.ifStatement, symbolTable, enclosingFunc, memoryManager),
+                elseStatements: node.elseStatement ? $cf264a5b1eb44de7$export$2e2bcd8739ae039(node.elseStatement, symbolTable, enclosingFunc, memoryManager) : null,
                 position: node.position
             }
         ];
@@ -21532,24 +21423,24 @@ function $cf264a5b1eb44de7$export$2e2bcd8739ae039(node, symbolTable, enclosingFu
             ];
         // start of processing Expression nodes which may have side effects
         } else if (node.type === "SwitchStatement") {
-            const processedTargetExpression = (0, $551bb05b84852d99$export$2e2bcd8739ae039)(node.targetExpression, symbolTable);
+            const processedTargetExpression = (0, $551bb05b84852d99$export$2e2bcd8739ae039)(node.targetExpression, symbolTable, memoryManager);
             const dataTypeOfTargetExpression = (0, $278774b275ed49b9$export$eb27e3f48ee2e547)({
                 expression: processedTargetExpression
             });
             if (!(0, $5320ef4601c98354$export$25d6369c8c841882)(dataTypeOfTargetExpression)) throw new (0, $28ac839a9eca26f5$export$f75c42204311f6de)("switch quantity is not an integer");
             if (node.cases.length === 0 && node.defaultStatements.length === 0) // empty switch statement, just process the expression as block item
-            return $cf264a5b1eb44de7$export$2e2bcd8739ae039(node.targetExpression, symbolTable, enclosingFunc);
+            return $cf264a5b1eb44de7$export$2e2bcd8739ae039(node.targetExpression, symbolTable, enclosingFunc, memoryManager);
             const originalInSwitch = $cf264a5b1eb44de7$var$auxInfo.inSwitch;
             $cf264a5b1eb44de7$var$auxInfo.inSwitch = true;
             const processedCases = [];
             for (const switchStatementCase of node.cases){
                 const dataTypeOfLabel = (0, $278774b275ed49b9$export$eb27e3f48ee2e547)({
-                    expression: (0, $551bb05b84852d99$export$2e2bcd8739ae039)(switchStatementCase.conditionMatch, symbolTable, enclosingFunc)
+                    expression: (0, $551bb05b84852d99$export$2e2bcd8739ae039)(switchStatementCase.conditionMatch, symbolTable, memoryManager, enclosingFunc)
                 });
                 if (!(0, $5320ef4601c98354$export$25d6369c8c841882)(dataTypeOfLabel)) throw new (0, $28ac839a9eca26f5$export$f75c42204311f6de)("case value not an integer constant expression", switchStatementCase.position);
                 const evaluatedConstant = (0, $4a3275d19fa7fc08$export$2e2bcd8739ae039)(switchStatementCase.conditionMatch);
                 const processedStatements = [];
-                for (const statement of switchStatementCase.statements)processedStatements.push(...$cf264a5b1eb44de7$export$2e2bcd8739ae039(statement, symbolTable, enclosingFunc));
+                for (const statement of switchStatementCase.statements)processedStatements.push(...$cf264a5b1eb44de7$export$2e2bcd8739ae039(statement, symbolTable, enclosingFunc, memoryManager));
                 // the conditon of each switch case is adjusted to be a relational expression: targetExpression == case value
                 const dataTypeOfSwitchCaseOperandAndTarget = (0, $553cdff61180334d$export$aeff407985fcdd14)(dataTypeOfTargetExpression, dataTypeOfLabel, "==").primaryDataType;
                 processedCases.push({
@@ -21567,7 +21458,7 @@ function $cf264a5b1eb44de7$export$2e2bcd8739ae039(node, symbolTable, enclosingFu
                 });
             }
             const processedDefaultStatements = [];
-            for (const defaultStatement of node.defaultStatements)processedDefaultStatements.push(...$cf264a5b1eb44de7$export$2e2bcd8739ae039(defaultStatement, symbolTable, enclosingFunc));
+            for (const defaultStatement of node.defaultStatements)processedDefaultStatements.push(...$cf264a5b1eb44de7$export$2e2bcd8739ae039(defaultStatement, symbolTable, enclosingFunc, memoryManager));
             $cf264a5b1eb44de7$var$auxInfo.inSwitch = originalInSwitch;
             return [
                 {
@@ -21578,19 +21469,19 @@ function $cf264a5b1eb44de7$export$2e2bcd8739ae039(node, symbolTable, enclosingFu
                     position: node.position
                 }
             ];
-        } else if (node.type === "Assignment") return (0, $ad114c17e3ec942a$export$ac7287207bedb81b)(node, symbolTable).memoryStoreStatements;
+        } else if (node.type === "Assignment") return (0, $ad114c17e3ec942a$export$ac7287207bedb81b)(node, symbolTable, memoryManager).memoryStoreStatements;
         else if (node.type === "FunctionCall") // in this context, the return (if any) of the functionCall is ignored, as it is used as a statement
         return [
-            (0, $b7e59eb4969f10fd$export$ef60bcd1c93fe004)(node, symbolTable).functionCallP
+            (0, $b7e59eb4969f10fd$export$ef60bcd1c93fe004)(node, symbolTable, memoryManager).functionCallP
         ];
         else if (node.type === "PrefixExpression" || node.type === "PostfixExpression") {
             if (node.operator === "++" || node.operator === "--") // only increment and decrement expressions become statements
-            return (0, $553cdff61180334d$export$2ae654d1d3591e24)(node, symbolTable).storeNodes;
+            return (0, $553cdff61180334d$export$2ae654d1d3591e24)(node, symbolTable, memoryManager).storeNodes;
             else {
                 // NOTE: commented out to disable removal of "redundant" statements
                 // processExpression(node, symbolTable, enclosingFunc);
                 // return [];
-                const processed = (0, $551bb05b84852d99$export$2e2bcd8739ae039)(node, symbolTable, enclosingFunc);
+                const processed = (0, $551bb05b84852d99$export$2e2bcd8739ae039)(node, symbolTable, memoryManager, enclosingFunc);
                 return [
                     {
                         type: "ExpressionStatement",
@@ -21602,18 +21493,18 @@ function $cf264a5b1eb44de7$export$2e2bcd8739ae039(node, symbolTable, enclosingFu
         } else if (node.type === "CommaSeparatedExpressions") {
             const processedExpressions = [];
             node.expressions.forEach((e)=>{
-                processedExpressions.push(...$cf264a5b1eb44de7$export$2e2bcd8739ae039(e, symbolTable, enclosingFunc));
+                processedExpressions.push(...$cf264a5b1eb44de7$export$2e2bcd8739ae039(e, symbolTable, enclosingFunc, memoryManager));
             });
             return processedExpressions;
         } else if (node.type === "ConditionalExpression") {
-            (0, $551bb05b84852d99$export$2e2bcd8739ae039)(node, symbolTable, enclosingFunc);
+            (0, $551bb05b84852d99$export$2e2bcd8739ae039)(node, symbolTable, memoryManager, enclosingFunc);
             // break this conditional into a simple if else expression (expressions inside condtional may have side effects)
             return [
                 {
                     type: "SelectionStatement",
                     condition: (0, $278774b275ed49b9$export$41f976199fdafdab)(node.condition, symbolTable),
-                    ifStatements: $cf264a5b1eb44de7$export$2e2bcd8739ae039(node.trueExpression, symbolTable, enclosingFunc),
-                    elseStatements: $cf264a5b1eb44de7$export$2e2bcd8739ae039(node.falseExpression, symbolTable, enclosingFunc),
+                    ifStatements: $cf264a5b1eb44de7$export$2e2bcd8739ae039(node.trueExpression, symbolTable, enclosingFunc, memoryManager),
+                    elseStatements: $cf264a5b1eb44de7$export$2e2bcd8739ae039(node.falseExpression, symbolTable, enclosingFunc, memoryManager),
                     position: node.position
                 }
             ];
@@ -21623,7 +21514,7 @@ function $cf264a5b1eb44de7$export$2e2bcd8739ae039(node, symbolTable, enclosingFu
             // processExpression(node, symbolTable, enclosingFunc);
             // all these expression statements can be safely ignored as they have no side effects
             // return [];
-            const processed = (0, $551bb05b84852d99$export$2e2bcd8739ae039)(node, symbolTable, enclosingFunc);
+            const processed = (0, $551bb05b84852d99$export$2e2bcd8739ae039)(node, symbolTable, memoryManager, enclosingFunc);
             return [
                 {
                     type: "ExpressionStatement",
@@ -21634,7 +21525,7 @@ function $cf264a5b1eb44de7$export$2e2bcd8739ae039(node, symbolTable, enclosingFu
         } else if (node.type === "StringLiteral") {
             (0, $e5f32705ab2cc688$export$8cf0d8363c40fe56)("statement with no effect", node.position);
             return [];
-        } else if (node.type === "Declaration" || node.type === "EnumDeclaration") return (0, $de78ebef6c7c100a$export$f3f7c2f7637d5845)(node, symbolTable, enclosingFunc);
+        } else if (node.type === "Declaration" || node.type === "EnumDeclaration") return (0, $de78ebef6c7c100a$export$f3f7c2f7637d5845)(node, symbolTable, enclosingFunc, memoryManager);
         else throw new (0, $28ac839a9eca26f5$export$f75c42204311f6de)(`unhandled C AST node: ${(0, $28ac839a9eca26f5$export$d5b7a8bf56ee1fe2)(node)}`);
     } catch (e) {
         if (e instanceof (0, $28ac839a9eca26f5$export$f75c42204311f6de) && e.position === null) e.addPositionInfo(node.position);
@@ -21742,10 +21633,10 @@ function $7fa195c2e9d4847a$export$35f6d94ab0cdeb18(processedCondition, processed
 }
 
 
-function $551bb05b84852d99$export$2e2bcd8739ae039(expr, symbolTable, enclosingFunc) {
+function $551bb05b84852d99$export$2e2bcd8739ae039(expr, symbolTable, memoryManager, enclosingFunc) {
     try {
         if (expr.type === "Assignment") {
-            const { memoryStoreStatements: memoryStoreStatements, memoryLoadExpressions: memoryLoadExpressions, dataType: dataType } = (0, $ad114c17e3ec942a$export$ac7287207bedb81b)(expr, symbolTable);
+            const { memoryStoreStatements: memoryStoreStatements, memoryLoadExpressions: memoryLoadExpressions, dataType: dataType } = (0, $ad114c17e3ec942a$export$ac7287207bedb81b)(expr, symbolTable, memoryManager);
             return {
                 originalDataType: dataType,
                 exprs: [
@@ -21761,13 +21652,13 @@ function $551bb05b84852d99$export$2e2bcd8739ae039(expr, symbolTable, enclosingFu
                 ]
             };
         } else if (expr.type === "BinaryExpression") {
-            const processedLeftExpr = $551bb05b84852d99$export$2e2bcd8739ae039(expr.leftExpr, symbolTable);
+            const processedLeftExpr = $551bb05b84852d99$export$2e2bcd8739ae039(expr.leftExpr, symbolTable, memoryManager);
             const processedLeftExprDataType = (0, $278774b275ed49b9$export$eb27e3f48ee2e547)({
                 expression: processedLeftExpr,
                 convertArrayToPointer: true,
                 convertFunctionToPointer: true
             });
-            const processedRightExpr = $551bb05b84852d99$export$2e2bcd8739ae039(expr.rightExpr, symbolTable);
+            const processedRightExpr = $551bb05b84852d99$export$2e2bcd8739ae039(expr.rightExpr, symbolTable, memoryManager);
             const processedRightExprDataType = (0, $278774b275ed49b9$export$eb27e3f48ee2e547)({
                 expression: processedRightExpr,
                 convertArrayToPointer: true,
@@ -21862,7 +21753,7 @@ function $551bb05b84852d99$export$2e2bcd8739ae039(expr, symbolTable, enclosingFu
                 ]
             };
         } else if (expr.type === "FunctionCall") {
-            const { functionCallP: functionCallStatement, returnType: funcReturnType } = (0, $b7e59eb4969f10fd$export$ef60bcd1c93fe004)(expr, symbolTable);
+            const { functionCallP: functionCallStatement, returnType: funcReturnType } = (0, $b7e59eb4969f10fd$export$ef60bcd1c93fe004)(expr, symbolTable, memoryManager);
             if (funcReturnType.type === "void") // trying to use a function call as an expression in context that expects a return object
             throw new (0, $28ac839a9eca26f5$export$f75c42204311f6de)("void value not ignored as it should be");
             // start curr offset at negative of the size of the return obj
@@ -21900,8 +21791,8 @@ function $551bb05b84852d99$export$2e2bcd8739ae039(expr, symbolTable, enclosingFu
                     ...returnObjectMemoryLoads.slice(1)
                 ]
             };
-        } else if (expr.type === "PrefixExpression") return (0, $553cdff61180334d$export$6c6c91bee4d2e1d5)(expr, symbolTable);
-        else if (expr.type === "PostfixExpression") return (0, $553cdff61180334d$export$382824ef9c3227d3)(expr, symbolTable);
+        } else if (expr.type === "PrefixExpression") return (0, $553cdff61180334d$export$6c6c91bee4d2e1d5)(expr, symbolTable, memoryManager);
+        else if (expr.type === "PostfixExpression") return (0, $553cdff61180334d$export$382824ef9c3227d3)(expr, symbolTable, memoryManager);
         else if (expr.type === "IdentifierExpression") {
             const symbolEntry = symbolTable.getSymbolEntry(expr.name);
             if (!symbolEntry) throw new (0, $28ac839a9eca26f5$export$f75c42204311f6de)(`'${expr.name}' undeclared`);
@@ -21956,7 +21847,7 @@ function $551bb05b84852d99$export$2e2bcd8739ae039(expr, symbolTable, enclosingFu
                 if (symbolEntry.type === "function") return (0, $278774b275ed49b9$export$6b66ad629d132504)(expr.expr.name, symbolEntry.dataType, symbolTable);
                 if (symbolEntry.type === "enumerator" || !(0, $ad114c17e3ec942a$export$eb6df2cfd9d662f1)(expr.expr, symbolEntry.dataType, symbolTable, true)) throw new (0, $28ac839a9eca26f5$export$f75c42204311f6de)("lvalue required as unary '&' operand");
                 // If function pointer, dont increase the pointer nesting, just return processed identifier expression
-                if ((0, $278774b275ed49b9$export$90b7432f092d8baf)(symbolEntry.dataType)) return $551bb05b84852d99$export$2e2bcd8739ae039(expr.expr, symbolTable, enclosingFunc);
+                if ((0, $278774b275ed49b9$export$90b7432f092d8baf)(symbolEntry.dataType)) return $551bb05b84852d99$export$2e2bcd8739ae039(expr.expr, symbolTable, memoryManager, enclosingFunc);
                 return {
                     originalDataType: {
                         type: "pointer",
@@ -21971,11 +21862,11 @@ function $551bb05b84852d99$export$2e2bcd8739ae039(expr, symbolTable, enclosingFu
                         }
                     ]
                 };
-            } else if (expr.expr.type === "PointerDereference") return $551bb05b84852d99$export$2e2bcd8739ae039(expr.expr.expr, symbolTable); // simply return the expression within the deref expression (& cancels *)
+            } else if (expr.expr.type === "PointerDereference") return $551bb05b84852d99$export$2e2bcd8739ae039(expr.expr.expr, symbolTable, memoryManager); // simply return the expression within the deref expression (& cancels *)
             else throw new (0, $28ac839a9eca26f5$export$f75c42204311f6de)("lvalue required for unary '&' operand");
         } else if (expr.type === "PointerDereference") {
             // process the expression being dereferenced first
-            const derefedExpression = $551bb05b84852d99$export$2e2bcd8739ae039(expr.expr, symbolTable);
+            const derefedExpression = $551bb05b84852d99$export$2e2bcd8739ae039(expr.expr, symbolTable, memoryManager);
             const derefedExpressionDataType = (0, $278774b275ed49b9$export$eb27e3f48ee2e547)({
                 expression: derefedExpression,
                 convertArrayToPointer: true,
@@ -22048,7 +21939,7 @@ function $551bb05b84852d99$export$2e2bcd8739ae039(expr, symbolTable, enclosingFu
             let dataTypeToGetSizeOf;
             if (expr.subtype === "expression") // sizeof used on expression
             dataTypeToGetSizeOf = (0, $278774b275ed49b9$export$eb27e3f48ee2e547)({
-                expression: $551bb05b84852d99$export$2e2bcd8739ae039(expr.expr, symbolTable)
+                expression: $551bb05b84852d99$export$2e2bcd8739ae039(expr.expr, symbolTable, memoryManager)
             });
             else // sizeof used on datatype
             dataTypeToGetSizeOf = expr.dataType;
@@ -22070,7 +21961,7 @@ function $551bb05b84852d99$export$2e2bcd8739ae039(expr, symbolTable, enclosingFu
                 ]
             };
         } else if (expr.type === "StructMemberAccess") {
-            const processedExpr = $551bb05b84852d99$export$2e2bcd8739ae039(expr.expr, symbolTable); // process the underlying expression being operated on
+            const processedExpr = $551bb05b84852d99$export$2e2bcd8739ae039(expr.expr, symbolTable, memoryManager); // process the underlying expression being operated on
             const dataTypeOfExpr = (0, $278774b275ed49b9$export$eb27e3f48ee2e547)({
                 expression: processedExpr,
                 convertArrayToPointer: true,
@@ -22171,9 +22062,9 @@ function $551bb05b84852d99$export$2e2bcd8739ae039(expr, symbolTable, enclosingFu
         } else if (expr.type === "CommaSeparatedExpressions") {
             // only last expression becomes a true Expression (one where a value is expected)
             // process the first expressions as statements
-            const processedLastExpr = $551bb05b84852d99$export$2e2bcd8739ae039(expr.expressions[expr.expressions.length - 1], symbolTable);
+            const processedLastExpr = $551bb05b84852d99$export$2e2bcd8739ae039(expr.expressions[expr.expressions.length - 1], symbolTable, memoryManager);
             const precedingExpressionsAsStatements = [];
-            for(let i = 0; i < expr.expressions.length - 1; ++i)precedingExpressionsAsStatements.push(...(0, $cf264a5b1eb44de7$export$2e2bcd8739ae039)(expr.expressions[i], symbolTable, enclosingFunc));
+            for(let i = 0; i < expr.expressions.length - 1; ++i)precedingExpressionsAsStatements.push(...(0, $cf264a5b1eb44de7$export$2e2bcd8739ae039)(expr.expressions[i], symbolTable, enclosingFunc, memoryManager));
             return {
                 originalDataType: processedLastExpr.originalDataType,
                 exprs: [
@@ -22188,14 +22079,14 @@ function $551bb05b84852d99$export$2e2bcd8739ae039(expr, symbolTable, enclosingFu
                 ]
             };
         } else if (expr.type === "ConditionalExpression") {
-            const processedCondition = $551bb05b84852d99$export$2e2bcd8739ae039(expr.condition, symbolTable, enclosingFunc);
-            const processedTrueExpression = $551bb05b84852d99$export$2e2bcd8739ae039(expr.trueExpression, symbolTable);
+            const processedCondition = $551bb05b84852d99$export$2e2bcd8739ae039(expr.condition, symbolTable, memoryManager, enclosingFunc);
+            const processedTrueExpression = $551bb05b84852d99$export$2e2bcd8739ae039(expr.trueExpression, symbolTable, memoryManager);
             const dataTypeOfTrueExpression = (0, $278774b275ed49b9$export$eb27e3f48ee2e547)({
                 expression: processedTrueExpression,
                 convertArrayToPointer: true,
                 convertFunctionToPointer: true
             });
-            const processedFalseExpression = $551bb05b84852d99$export$2e2bcd8739ae039(expr.falseExpression, symbolTable);
+            const processedFalseExpression = $551bb05b84852d99$export$2e2bcd8739ae039(expr.falseExpression, symbolTable, memoryManager);
             const dataTypeOfFalseExpression = (0, $278774b275ed49b9$export$eb27e3f48ee2e547)({
                 expression: processedFalseExpression,
                 convertArrayToPointer: true,
@@ -22311,9 +22202,9 @@ function $553cdff61180334d$export$aeff407985fcdd14(leftExprDataType, rightExprDa
     };
     return $553cdff61180334d$export$60a4dbab6386febc(leftExprDataType, rightExprDataType, operator);
 }
-function $553cdff61180334d$export$2ae654d1d3591e24(expr, symbolTable) {
+function $553cdff61180334d$export$2ae654d1d3591e24(expr, symbolTable, memoryManager) {
     const binaryOperator = expr.operator === "++" ? "+" : "-";
-    const processedExpr = (0, $551bb05b84852d99$export$2e2bcd8739ae039)(expr.expr, symbolTable);
+    const processedExpr = (0, $551bb05b84852d99$export$2e2bcd8739ae039)(expr.expr, symbolTable, memoryManager);
     (0, $7fa195c2e9d4847a$export$56a6d0cab5953511)(expr, processedExpr, symbolTable);
     const dataType = (0, $278774b275ed49b9$export$eb27e3f48ee2e547)({
         expression: processedExpr
@@ -22357,9 +22248,9 @@ function $553cdff61180334d$export$2ae654d1d3591e24(expr, symbolTable) {
         dataType: dataType
     };
 }
-function $553cdff61180334d$export$6c6c91bee4d2e1d5(prefixExpression, symbolTable) {
+function $553cdff61180334d$export$6c6c91bee4d2e1d5(prefixExpression, symbolTable, memoryManager) {
     if (prefixExpression.operator === "++" || prefixExpression.operator === "--") {
-        const { loadNode: loadNode, storeNodes: storeNodes, dataType: dataType } = $553cdff61180334d$export$2ae654d1d3591e24(prefixExpression, symbolTable);
+        const { loadNode: loadNode, storeNodes: storeNodes, dataType: dataType } = $553cdff61180334d$export$2ae654d1d3591e24(prefixExpression, symbolTable, memoryManager);
         return {
             originalDataType: dataType,
             exprs: [
@@ -22373,7 +22264,7 @@ function $553cdff61180334d$export$6c6c91bee4d2e1d5(prefixExpression, symbolTable
             ]
         };
     } else {
-        const processedExpression = (0, $551bb05b84852d99$export$2e2bcd8739ae039)(prefixExpression.expr, symbolTable);
+        const processedExpression = (0, $551bb05b84852d99$export$2e2bcd8739ae039)(prefixExpression.expr, symbolTable, memoryManager);
         const dataType = (0, $278774b275ed49b9$export$eb27e3f48ee2e547)({
             expression: processedExpression
         });
@@ -22413,8 +22304,8 @@ function $553cdff61180334d$export$6c6c91bee4d2e1d5(prefixExpression, symbolTable
         }
     }
 }
-function $553cdff61180334d$export$382824ef9c3227d3(postfixExpression, symbolTable) {
-    const { loadNode: loadNode, storeNodes: storeNodes, dataType: dataType } = $553cdff61180334d$export$2ae654d1d3591e24(postfixExpression, symbolTable);
+function $553cdff61180334d$export$382824ef9c3227d3(postfixExpression, symbolTable, memoryManager) {
+    const { loadNode: loadNode, storeNodes: storeNodes, dataType: dataType } = $553cdff61180334d$export$2ae654d1d3591e24(postfixExpression, symbolTable, memoryManager);
     return {
         originalDataType: dataType,
         exprs: [
@@ -22817,41 +22708,6 @@ function $5320ef4601c98354$export$33c67e91126bcea2(dataType) {
 }
 
 
-class $8c698c0438819abb$var$MemoryManager {
-    constructor(){
-        this.addressMap = new (0, $5577eaa48f4a17ce$export$ab3828307dd6d09)();
-    }
-    reload() {
-        if ($8c698c0438819abb$var$MemoryManager.instance) $8c698c0438819abb$var$MemoryManager.instance = new $8c698c0438819abb$var$MemoryManager();
-    }
-    static getInstance() {
-        if (!$8c698c0438819abb$var$MemoryManager.instance) $8c698c0438819abb$var$MemoryManager.instance = new $8c698c0438819abb$var$MemoryManager();
-        return $8c698c0438819abb$var$MemoryManager.instance;
-    }
-    initFromSymbolTable(symbolTable) {
-        this.addressMap = (0, $5577eaa48f4a17ce$export$ab3828307dd6d09).buildFromSymbolTable(symbolTable, (0, $5320ef4601c98354$export$1713163196af6553));
-    }
-    // public getSymbolTable(): Map<>
-    // public getVariableAddress(name: string): number | undefined {
-    //   const entry = this.addressMap.getVariableAddress(name);
-    //   return entry?.offset;
-    // }
-    getAddressMap() {
-        return this.addressMap;
-    }
-    enterScope(scopeName) {
-        this.addressMap.pushScope(scopeName);
-    }
-    exitScope() {
-        this.addressMap.popScope();
-    }
-}
-const $8c698c0438819abb$export$8f5345d7eb869598 = $8c698c0438819abb$var$MemoryManager.getInstance();
-
-
-
-
-
 
 
 class $c5c9ce8d51254f39$export$777871f1ccd7bbc3 {
@@ -22900,7 +22756,7 @@ class $c5c9ce8d51254f39$export$777871f1ccd7bbc3 {
     isExternalFunction(funcName) {
         return funcName in this.externalFunctions;
     }
-    addEntry(declaration) {
+    addEntry(declaration, memoryManager) {
         if (declaration.dataType.type === "function") return this.addFunctionEntry(declaration.name, declaration.dataType);
         else {
             if (this.parentTable === null || declaration.storageClass === "static") {
@@ -22909,7 +22765,7 @@ class $c5c9ce8d51254f39$export$777871f1ccd7bbc3 {
                 const byteStr = (0, $de78ebef6c7c100a$export$122b46d757fa097c)(declaration.dataType, typeof declaration.initializer === "undefined" ? null : declaration.initializer, this);
                 this.dataSegmentByteStr.value += byteStr;
             }
-            return this.addVariableEntry(declaration.name, declaration.dataType, declaration.storageClass);
+            return this.addVariableEntry(declaration.name, declaration.dataType, declaration.storageClass, memoryManager);
         }
     }
     addEnumeratorEntry(enumeratorName, enumeratorValue) {
@@ -22937,7 +22793,7 @@ class $c5c9ce8d51254f39$export$777871f1ccd7bbc3 {
         this.dataSegmentOffset.value += bytes.length;
         return offset;
     }
-    addVariableEntry(name, dataType, storageClass) {
+    addVariableEntry(name, dataType, storageClass, memoryManager) {
         if (name in this.symbols) {
             // given variable already exists in given scope
             // multiple declarations only allowed outside of function bodies
@@ -22976,7 +22832,7 @@ class $c5c9ce8d51254f39$export$777871f1ccd7bbc3 {
         }
         this.symbols[name] = entry;
         const varEntry = entry;
-        (0, $8c698c0438819abb$export$8f5345d7eb869598).getAddressMap().addVariable(name, {
+        memoryManager.getAddressMap().addVariable(name, {
             name: name,
             offset: varEntry.offset,
             isGlobal: varEntry.type === "dataSegmentVariable",
@@ -23037,13 +22893,13 @@ class $c5c9ce8d51254f39$export$777871f1ccd7bbc3 {
    */ setFunctionIsDefinedFlag(functionName) {
         this.functionTable[this.getFunctionIndex(functionName)].isDefined = true;
     }
-    enterFunctionScope(functionName) {
+    enterFunctionScope(functionName, memoryManager) {
         this.currentFunctionName = functionName;
-        (0, $8c698c0438819abb$export$8f5345d7eb869598).enterScope(functionName);
+        memoryManager.enterScope(functionName);
     }
-    exitFunctionScope() {
+    exitFunctionScope(memoryManager) {
         this.currentFunctionName = "";
-        (0, $8c698c0438819abb$export$8f5345d7eb869598).exitScope();
+        memoryManager.exitScope();
     }
 }
 
@@ -23053,15 +22909,14 @@ class $c5c9ce8d51254f39$export$777871f1ccd7bbc3 {
 
 
 
-
-function $b7e59eb4969f10fd$export$2e2bcd8739ae039(node, symbolTable) {
+function $b7e59eb4969f10fd$export$2e2bcd8739ae039(node, symbolTable, memoryManager) {
     symbolTable.addFunctionEntry(node.name, node.dataType);
     symbolTable.setFunctionIsDefinedFlag(node.name);
     if (node.dataType.returnType.type === "array") throw new (0, $28ac839a9eca26f5$export$f75c42204311f6de)("arrays cannot be returned from a function");
     const funcSymbolTable = new (0, $c5c9ce8d51254f39$export$777871f1ccd7bbc3)(symbolTable);
-    (0, $8c698c0438819abb$export$8f5345d7eb869598).enterScope(node.name);
+    memoryManager.enterScope(node.name);
     // add all the params to the symbol table
-    for(let i = 0; i < node.parameterNames.length; ++i)funcSymbolTable.addVariableEntry(node.parameterNames[i], node.dataType.parameters[i], "auto");
+    for(let i = 0; i < node.parameterNames.length; ++i)funcSymbolTable.addVariableEntry(node.parameterNames[i], node.dataType.parameters[i], "auto", memoryManager);
     const functionDefinitionNode = {
         type: "FunctionDefinition",
         name: node.name,
@@ -23071,14 +22926,14 @@ function $b7e59eb4969f10fd$export$2e2bcd8739ae039(node, symbolTable) {
         position: node.position
     };
     // visit body
-    const body = (0, $cf264a5b1eb44de7$export$2e2bcd8739ae039)(node.body, funcSymbolTable, functionDefinitionNode);
+    const body = (0, $cf264a5b1eb44de7$export$2e2bcd8739ae039)(node.body, funcSymbolTable, functionDefinitionNode, memoryManager);
     functionDefinitionNode.body = body; // body is a Block, an array of StatementP will be returned
-    (0, $8c698c0438819abb$export$8f5345d7eb869598).exitScope();
+    memoryManager.exitScope();
     return functionDefinitionNode;
 }
-function $b7e59eb4969f10fd$export$733f767a80574592(expr, symbolTable) {
+function $b7e59eb4969f10fd$export$733f767a80574592(expr, symbolTable, memoryManager) {
     const statements = [];
-    const processedExpr = (0, $551bb05b84852d99$export$2e2bcd8739ae039)(expr, symbolTable);
+    const processedExpr = (0, $551bb05b84852d99$export$2e2bcd8739ae039)(expr, symbolTable, memoryManager);
     // TODO: data type check
     // if (
     //   enclosingFunc.dataType.returnType !== null &&
@@ -23116,7 +22971,7 @@ function $b7e59eb4969f10fd$export$733f767a80574592(expr, symbolTable) {
     });
     return statements;
 }
-function $b7e59eb4969f10fd$export$ef60bcd1c93fe004(node, symbolTable) {
+function $b7e59eb4969f10fd$export$ef60bcd1c93fe004(node, symbolTable, memoryManager) {
     // direct call of a function
     if (node.expr.type === "IdentifierExpression" && symbolTable.getSymbolEntry(node.expr.name).type === "function") {
         const symbolEntry = symbolTable.getSymbolEntry(node.expr.name);
@@ -23129,14 +22984,14 @@ function $b7e59eb4969f10fd$export$ef60bcd1c93fe004(node, symbolTable) {
                     position: node.position
                 },
                 functionDetails: symbolEntry.functionDetails,
-                args: $b7e59eb4969f10fd$var$processFunctionCallArgs(node.args, symbolEntry.dataType, symbolTable),
+                args: $b7e59eb4969f10fd$var$processFunctionCallArgs(node.args, symbolEntry.dataType, symbolTable, memoryManager),
                 position: node.position
             },
             returnType: symbolEntry.dataType.returnType
         };
     }
     // indirect call of function from an expression that is a function pointer
-    const processedCalledExpr = (0, $551bb05b84852d99$export$2e2bcd8739ae039)(node.expr, symbolTable);
+    const processedCalledExpr = (0, $551bb05b84852d99$export$2e2bcd8739ae039)(node.expr, symbolTable, memoryManager);
     const dataTypeOfCalledExpr = (0, $278774b275ed49b9$export$eb27e3f48ee2e547)({
         expression: processedCalledExpr,
         convertArrayToPointer: true,
@@ -23153,16 +23008,16 @@ function $b7e59eb4969f10fd$export$ef60bcd1c93fe004(node, symbolTable) {
                 position: processedCalledExpr.exprs[0].position
             },
             functionDetails: (0, $5320ef4601c98354$export$e4c716771fc2ed5d)(functionDataType),
-            args: $b7e59eb4969f10fd$var$processFunctionCallArgs(node.args, functionDataType, symbolTable),
+            args: $b7e59eb4969f10fd$var$processFunctionCallArgs(node.args, functionDataType, symbolTable, memoryManager),
             position: processedCalledExpr.exprs[0].position
         }
     };
 }
-function $b7e59eb4969f10fd$var$processFunctionCallArgs(args, fnDataType, symbolTable) {
+function $b7e59eb4969f10fd$var$processFunctionCallArgs(args, fnDataType, symbolTable, memoryManager) {
     const argExpressions = [];
     const argExpressionWrappers = [];
     for (const arg of args){
-        const expr = (0, $551bb05b84852d99$export$2e2bcd8739ae039)(arg, symbolTable);
+        const expr = (0, $551bb05b84852d99$export$2e2bcd8739ae039)(arg, symbolTable, memoryManager);
         argExpressionWrappers.push(expr);
         // each inidividual expression is concatenated in reverse order, as stack grows from high to low,
         // whereas indiviudal primary data types within larger aggergates go from low to high (reverse direction)
@@ -23193,8 +23048,7 @@ function $b7e59eb4969f10fd$var$processFunctionCallArgs(args, fnDataType, symbolT
 
 
 
-
-function $3bbec8f49ad76a86$export$2e2bcd8739ae039(ast, moduleRepository) {
+function $3bbec8f49ad76a86$export$2e2bcd8739ae039(ast, moduleRepository, memoryManager) {
     (0, $e5f32705ab2cc688$export$5ecd17fec0dc7499)();
     const includedModules = [];
     const symbolTable = new (0, $c5c9ce8d51254f39$export$777871f1ccd7bbc3)();
@@ -23223,12 +23077,12 @@ function $3bbec8f49ad76a86$export$2e2bcd8739ae039(ast, moduleRepository) {
     ast.children.forEach((child)=>{
         // special handling for function definitions
         (0, $cf264a5b1eb44de7$export$f7e4aa58fa839c4e)();
-        if (child.type === "FunctionDefinition") processedAst.functions.push((0, $b7e59eb4969f10fd$export$2e2bcd8739ae039)(child, symbolTable));
-        else (0, $de78ebef6c7c100a$export$6a9ae9430f0feed9)(child, symbolTable);
+        if (child.type === "FunctionDefinition") processedAst.functions.push((0, $b7e59eb4969f10fd$export$2e2bcd8739ae039)(child, symbolTable, memoryManager));
+        else (0, $de78ebef6c7c100a$export$6a9ae9430f0feed9)(child, symbolTable, memoryManager);
     });
     // check for presence of main function
     if (!symbolTable.hasSymbol("main")) throw new (0, $28ac839a9eca26f5$export$f75c42204311f6de)("main function not defined");
-    $3bbec8f49ad76a86$var$debugPrintMemoryMap(); // Add this function call
+    // memoryManager.debugPrint();
     processedAst.dataSegmentByteStr = symbolTable.dataSegmentByteStr.value;
     processedAst.dataSegmentSizeInBytes = symbolTable.dataSegmentOffset.value;
     processedAst.functionTable = symbolTable.functionTable;
@@ -23237,79 +23091,6 @@ function $3bbec8f49ad76a86$export$2e2bcd8739ae039(ast, moduleRepository) {
         includedModules: includedModules,
         warnings: $e5f32705ab2cc688$export$cce7aaa89215f32b
     };
-}
-function $3bbec8f49ad76a86$var$debugPrintMemoryMap() {
-    console.log("\n=== MEMORY ADDRESS MAP ===");
-    console.log("Variable Name         | Scope           | Offset | Size");
-    console.log("----------------------------------------------------");
-    const addressMap = (0, $8c698c0438819abb$export$8f5345d7eb869598).getAddressMap();
-    const map = addressMap.getAddressMap();
-    // Group entries by scope for better organization
-    const globalEntries = [];
-    const localEntriesByFunction = {};
-    map.forEach((entry, name)=>{
-        // Check if this is a scoped name (contains a dot)
-        // const scopeMatch = name.name.match(/^(.+)\.(.+)$/);
-        const scopeMatch = name.split("::");
-        const varName = scopeMatch[1];
-        const functionName = scopeMatch[0];
-        if (entry.isGlobal && varName) globalEntries.push([
-            varName,
-            entry
-        ]);
-        else if (varName && functionName) {
-            if (!localEntriesByFunction[functionName]) localEntriesByFunction[functionName] = [];
-            // Store with the real variable name (without scope prefix)
-            localEntriesByFunction[functionName].push([
-                varName,
-                entry
-            ]);
-        } else if (varName) {
-            // Local variable without proper scope - fallback
-            if (!localEntriesByFunction["unknown"]) localEntriesByFunction["unknown"] = [];
-            localEntriesByFunction["unknown"].push([
-                varName,
-                entry
-            ]);
-        } else throw new Error("Error parsing MemoryAddressKey");
-    });
-    // Print all variables in a flat list but with their scope displayed
-    const allEntries = [];
-    // Add global variables
-    globalEntries.forEach(([name, entry])=>{
-        allEntries.push([
-            name,
-            "global",
-            entry
-        ]);
-    });
-    // Add local variables with their function name as scope
-    Object.entries(localEntriesByFunction).forEach(([functionName, entries])=>{
-        entries.forEach(([name, entry])=>{
-            allEntries.push([
-                name,
-                functionName,
-                entry
-            ]);
-        });
-    });
-    // Sort by scope and then by offset
-    allEntries.sort((a, b)=>{
-        if (a[1] !== b[1]) {
-            // Sort global scope first
-            if (a[1] === "global") return -1;
-            if (b[1] === "global") return 1;
-            // Then alphabetically by function name
-            return a[1].localeCompare(b[1]);
-        }
-        // Within same scope, sort by offset
-        return a[2].offset - b[2].offset;
-    });
-    // Print the sorted entries
-    allEntries.forEach(([name, scope, entry])=>{
-        console.log(`${name.padEnd(20)} | ${scope.padEnd(15)} | ` + `${entry.offset.toString().padEnd(6)} | ${entry.size} bytes`);
-    });
-    console.log("=============================================\n");
 }
 
 
@@ -25606,15 +25387,14 @@ class $bf9b58631501cd70$export$269330a1f1074312 {
 
 
 
-
 class $ab578cd88f2696dc$export$8949fddf10447898 {
-    constructor(functionName, basePointer, stackPointer, sizeOfReturn, memory){
+    constructor(functionName, basePointer, stackPointer, sizeOfReturn, memory, memoryManager){
         this.variablesMap = new Map();
         this.functionName = functionName;
-        const addressMap = (0, $8c698c0438819abb$export$8f5345d7eb869598).getAddressMap();
         this.basePointer = basePointer;
         this.stackPointer = stackPointer;
         this.sizeOfReturn = sizeOfReturn;
+        const addressMap = memoryManager.getAddressMap();
         const map = addressMap.getAddressMap();
         map.forEach((entry, name)=>{
             const parts = name.split("::");
@@ -25624,6 +25404,22 @@ class $ab578cd88f2696dc$export$8949fddf10447898 {
             if (entry.dataType.type == "primary") targetDataType = entry.dataType.primaryDataType;
             else if (entry.dataType.type == "pointer") targetDataType = "signed int";
             else throw new Error("Cannot load: " + entry.dataType + " from memory");
+            if (entry.isGlobal && functionName === "global") {
+                const absoluteAddress = entry.offset;
+                const value = memory.load({
+                    type: "MemoryAddress",
+                    value: BigInt(absoluteAddress),
+                    hexValue: absoluteAddress.toString(16)
+                }, targetDataType);
+                let targetValue = 0;
+                if (value.type === "FunctionTableIndex") targetValue = Number(value.index.value);
+                else targetValue = Number(value.value);
+                this.variablesMap.set(varName, {
+                    ...entry,
+                    absoluteAddress: absoluteAddress,
+                    value: targetValue
+                });
+            }
             if (scope === functionName) {
                 const absoluteAddress = entry.offset + basePointer;
                 const value = memory.load({
@@ -25651,12 +25447,13 @@ class $ab578cd88f2696dc$export$8949fddf10447898 {
 
 
 class $8c91e30fbe002c74$export$e5b52c46a548ff03 {
-    constructor(astRootNode, includedModules, moduleConfig, sourceCode){
+    constructor(astRootNode, includedModules, moduleConfig, sourceCode, memoryManager){
         this.astRootNode = astRootNode;
         this.runtimeStack = []; // CURRENTLY NOT USED WITH HOW INTERPRETER IS SETUP
         this.includedModules = includedModules;
         this.moduleConfig = moduleConfig;
         this.sourceCode = sourceCode;
+        this.memoryManager = memoryManager;
     }
     async interpretTillStep(targetStep) {
         (0, $bf9b58631501cd70$export$269330a1f1074312).astRootP = this.astRootNode;
@@ -25714,10 +25511,12 @@ class $8c91e30fbe002c74$export$e5b52c46a548ff03 {
         const stackFrames = [];
         for(let i = 0; i < tearDowns.length; i++){
             if (tearDowns[i].type !== (0, $6267764a9e4139a0$export$c11d6cfb99c9fdfb).STACKFRAMETEARDOWNINSTRUCTION) throw new Error("Expected a StackFrameTearDown Instruction");
-            stackFrames.push(new (0, $ab578cd88f2696dc$export$8949fddf10447898)(tearDowns[i].functionName, lastBasePointer, lastStackPointer, tearDowns[i].sizeOfReturn, currentRuntime.getMemory()));
+            stackFrames.push(new (0, $ab578cd88f2696dc$export$8949fddf10447898)(tearDowns[i].functionName, lastBasePointer, lastStackPointer, tearDowns[i].sizeOfReturn, currentRuntime.getMemory(), this.memoryManager));
             lastBasePointer = tearDowns[i].basePointer;
             lastStackPointer = tearDowns[i].stackPointer;
         }
+        stackFrames.push(new (0, $ab578cd88f2696dc$export$8949fddf10447898)("global", 0, 0, 0, currentRuntime.getMemory(), this.memoryManager));
+        // console.log(stackFrames);
         return {
             astRoot: this.astRootNode,
             control: currentRuntime.getControl(),
@@ -25787,14 +25586,8 @@ class $8c91e30fbe002c74$export$e5b52c46a548ff03 {
 
 
 
-
-function $29d5c7e8e9cfab6e$export$67beed298888a38b(astRootNode, includedModules, moduleConfig, sourceCode) {
-    const interpreter = new (0, $8c91e30fbe002c74$export$e5b52c46a548ff03)(astRootNode, includedModules, moduleConfig, sourceCode);
-    interpreter.interpret();
-}
-async function $29d5c7e8e9cfab6e$export$3567556d58c2cae(astRootNode, includedModules, moduleConfig, targetStep, sourceCode) {
-    const interpreter = new (0, $8c91e30fbe002c74$export$e5b52c46a548ff03)(astRootNode, includedModules, moduleConfig, sourceCode);
-    (0, $8c698c0438819abb$export$8f5345d7eb869598).reload();
+async function $29d5c7e8e9cfab6e$export$3567556d58c2cae(astRootNode, includedModules, moduleConfig, targetStep, sourceCode, memoryManager) {
+    const interpreter = new (0, $8c91e30fbe002c74$export$e5b52c46a548ff03)(astRootNode, includedModules, moduleConfig, sourceCode, memoryManager);
     return await interpreter.interpretTillStep(targetStep);
 }
 function $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem) {
@@ -25950,12 +25743,189 @@ const $29d5c7e8e9cfab6e$export$6b717a7b89b3aa = {
 };
 
 
+class $5577eaa48f4a17ce$export$34c280ece72e7eaa {
+    constructor(name, scope, offset){
+        this.name = name;
+        this.scope = scope;
+        this.offset = offset;
+    }
+    toString() {
+        return `${this.scope}::${this.name}::${this.offset.toString()}`;
+    }
+}
+class $5577eaa48f4a17ce$export$ab3828307dd6d09 {
+    constructor(getDataTypeSize){
+        this.addressMap = new Map();
+        this.scopeChain = [];
+        this.getDataTypeSize = getDataTypeSize;
+    }
+    addVariable(name, entry) {
+        const scopedName = this.getScopedName(name);
+        this.addressMap.set(new $5577eaa48f4a17ce$export$34c280ece72e7eaa(name, scopedName, entry.offset).toString(), entry);
+    }
+    pushScope(scopeName) {
+        this.scopeChain.push(scopeName);
+    }
+    popScope() {
+        return this.scopeChain.pop();
+    }
+    getScopedName(name) {
+        if (this.scopeChain.length === 0) return name;
+        return this.scopeChain[this.scopeChain.length - 1];
+    }
+    buildFromSymbolTable(symbolTable) {
+        this.processSymbolTable(this.getRootSymbolTable(symbolTable), true);
+        this.processFunctionScopes(symbolTable);
+    }
+    processSymbolTable(table, isGlobal) {
+        if (!isGlobal) this.pushScope(this.getFunctionNameFromSymbolTable(table));
+        for (const [name, entry] of Object.entries(table.symbols))if (entry.type === "localVariable" || entry.type === "dataSegmentVariable") {
+            const varEntry = entry;
+            this.addVariable(name, {
+                name: name,
+                offset: varEntry.offset,
+                isGlobal: entry.type === "dataSegmentVariable",
+                size: this.getDataTypeSize(varEntry.dataType),
+                dataType: varEntry.dataType
+            });
+        }
+        if (!isGlobal) this.popScope();
+    }
+    getFunctionNameFromSymbolTable(table) {
+        return "function_" + Math.random().toString(36).substring(2, 9);
+    }
+    getRootSymbolTable(symbolTable) {
+        let current = symbolTable;
+        while(current.parentTable !== null)current = current.parentTable;
+        return current;
+    }
+    processFunctionScopes(symbolTable) {
+        const functionNames = [];
+        for (const [name, entry] of Object.entries(symbolTable.symbols))if (entry.type === "function") functionNames.push(name);
+        console.log(`Found ${functionNames.length} functions to process`);
+        for (const entry of symbolTable.functionTable)if (entry.isDefined) {
+            const functionName = entry.functionName;
+            console.log(`Processing local variables for function: ${functionName}`);
+            this.processSymbolTable(symbolTable, false);
+        }
+    }
+    debugPrint() {
+        console.log("=== Memory Address Map ===");
+        const entries = [];
+        this.addressMap.forEach((entry, name)=>{
+            const parts = name.split("::");
+            if (!parts[1]) throw new Error("Cannot parse MemoryAddressKey");
+            entries.push([
+                parts[1],
+                entry
+            ]);
+        });
+        entries.sort((a, b)=>a[1].offset - b[1].offset);
+        entries.forEach(([name, entry])=>{
+            console.log(`${name.padEnd(20)} | ${entry.isGlobal ? "Global" : "Local"} | ` + `Offset: ${entry.offset} | Size: ${entry.size} bytes`);
+        });
+        console.log("========================");
+    }
+    getAddressMap() {
+        return this.addressMap;
+    }
+}
+
+
+
+class $8c698c0438819abb$export$85b768e21d5f5a71 {
+    constructor(){
+        this.addressMap = new (0, $5577eaa48f4a17ce$export$ab3828307dd6d09)((0, $5320ef4601c98354$export$1713163196af6553));
+    }
+    getAddressMap() {
+        return this.addressMap;
+    }
+    enterScope(scopeName) {
+        this.addressMap.pushScope(scopeName);
+    }
+    exitScope() {
+        this.addressMap.popScope();
+    }
+    debugPrint() {
+        console.log("\n=== MEMORY ADDRESS MAP ===");
+        console.log("Variable Name         | Scope           | Offset | Size");
+        console.log("----------------------------------------------------");
+        const map = this.addressMap.getAddressMap();
+        // Group entries by scope for better organization
+        const globalEntries = [];
+        const localEntriesByFunction = {};
+        map.forEach((entry, name)=>{
+            // Check if this is a scoped name (contains a dot)
+            // const scopeMatch = name.name.match(/^(.+)\.(.+)$/);
+            const scopeMatch = name.split("::");
+            const varName = scopeMatch[1];
+            const functionName = scopeMatch[0];
+            if (entry.isGlobal && varName) globalEntries.push([
+                varName,
+                entry
+            ]);
+            else if (varName && functionName) {
+                if (!localEntriesByFunction[functionName]) localEntriesByFunction[functionName] = [];
+                // Store with the real variable name (without scope prefix)
+                localEntriesByFunction[functionName].push([
+                    varName,
+                    entry
+                ]);
+            } else if (varName) {
+                // Local variable without proper scope - fallback
+                if (!localEntriesByFunction["unknown"]) localEntriesByFunction["unknown"] = [];
+                localEntriesByFunction["unknown"].push([
+                    varName,
+                    entry
+                ]);
+            } else throw new Error("Error parsing MemoryAddressKey");
+        });
+        // Print all variables in a flat list but with their scope displayed
+        const allEntries = [];
+        // Add global variables
+        globalEntries.forEach(([name, entry])=>{
+            allEntries.push([
+                name,
+                "global",
+                entry
+            ]);
+        });
+        // Add local variables with their function name as scope
+        Object.entries(localEntriesByFunction).forEach(([functionName, entries])=>{
+            entries.forEach(([name, entry])=>{
+                allEntries.push([
+                    name,
+                    functionName,
+                    entry
+                ]);
+            });
+        });
+        // Sort by scope and then by offset
+        allEntries.sort((a, b)=>{
+            if (a[1] !== b[1]) {
+                // Sort global scope first
+                if (a[1] === "global") return -1;
+                if (b[1] === "global") return 1;
+                // Then alphabetically by function name
+                return a[1].localeCompare(b[1]);
+            }
+            // Within same scope, sort by offset
+            return a[2].offset - b[2].offset;
+        });
+        // Print the sorted entries
+        allEntries.forEach(([name, scope, entry])=>{
+            console.log(`${name.padEnd(20)} | ${scope.padEnd(15)} | ` + `${entry.offset.toString().padEnd(6)} | ${entry.size} bytes`);
+        });
+        console.log("=============================================\n");
+    }
+}
+
+
 async function $c20cbec167d66736$export$ef7acd7185315e22(cSourceCode, moduleRepository) {
     try {
         const { cAstRoot: cAstRoot, warnings: warnings } = (0, $812b9a955e75cbf9$export$2e2bcd8739ae039)(cSourceCode, moduleRepository);
         const { astRootNode: astRootNode, includedModules: includedModules, warnings: processorWarnings } = (0, $3bbec8f49ad76a86$export$2e2bcd8739ae039)(cAstRoot, moduleRepository);
         warnings.push(...processorWarnings.map((w)=>(0, $28ac839a9eca26f5$export$9a24d8f7b932fdc5)(w.message, cSourceCode, w.position)));
-        // interpret(astRootNode, cAstRoot.includedModules, moduleRepository.config); // here
         const wasmModule = (0, $edd1d19f265dea24$export$2e2bcd8739ae039)(astRootNode, moduleRepository);
         const output = await (0, $35ff0e651cf79adf$export$244319998795f476)((0, $df2c68a1897a685b$export$38d6b8478af371c3)(wasmModule));
         return {
@@ -25980,10 +25950,12 @@ async function $c20cbec167d66736$export$ef7acd7185315e22(cSourceCode, moduleRepo
 }
 async function $c20cbec167d66736$export$fef61f332f2c0afc(cSourceCode, moduleRepository, targetStep) {
     try {
+        const memoryManager = new (0, $8c698c0438819abb$export$85b768e21d5f5a71)();
         const { cAstRoot: cAstRoot, warnings: warnings } = (0, $812b9a955e75cbf9$export$2e2bcd8739ae039)(cSourceCode, moduleRepository);
-        const { astRootNode: astRootNode, includedModules: includedModules, warnings: processorWarnings } = (0, $3bbec8f49ad76a86$export$2e2bcd8739ae039)(cAstRoot, moduleRepository);
+        const { astRootNode: astRootNode, includedModules: includedModules, warnings: processorWarnings } = (0, $3bbec8f49ad76a86$export$2e2bcd8739ae039)(cAstRoot, moduleRepository, memoryManager);
         warnings.push(...processorWarnings.map((w)=>(0, $28ac839a9eca26f5$export$9a24d8f7b932fdc5)(w.message, cSourceCode, w.position)));
-        const outputContext = await (0, $29d5c7e8e9cfab6e$export$3567556d58c2cae)(astRootNode, cAstRoot.includedModules, moduleRepository.config, targetStep, cSourceCode);
+        const outputContext = await (0, $29d5c7e8e9cfab6e$export$3567556d58c2cae)(astRootNode, cAstRoot.includedModules, moduleRepository.config, targetStep, cSourceCode, memoryManager);
+        console.log(memoryManager.debugPrint());
         return {
             status: "success",
             context: outputContext,
@@ -26050,12 +26022,15 @@ function $c20cbec167d66736$export$d54d1a0fdc0ee87e(cSourceCode, moduleRepository
     //checkForErrors(cSourceCode, CAst, Object.keys(wasmModuleImports)); // use semantic analyzer to check for semantic errors
     const wasmAst = (0, $edd1d19f265dea24$export$2e2bcd8739ae039)(astRootNode, moduleRepository);
     return (0, $28ac839a9eca26f5$export$d5b7a8bf56ee1fe2)(wasmAst);
-}
-function $c20cbec167d66736$export$a0451f39bcc24e74(cSourceCode, moduleRepository, moduleConfig) {
-    const { cAstRoot: cAstRoot } = (0, $812b9a955e75cbf9$export$2e2bcd8739ae039)(cSourceCode, moduleRepository);
-    const { astRootNode: astRootNode } = (0, $3bbec8f49ad76a86$export$2e2bcd8739ae039)(cAstRoot, moduleRepository);
-    (0, $29d5c7e8e9cfab6e$export$67beed298888a38b)(astRootNode, cAstRoot.includedModules, moduleConfig, cSourceCode);
-}
+} // export function interpret_C_AST(
+ //   cSourceCode: string,
+ //   moduleRepository: ModuleRepository,
+ //   moduleConfig: ModulesGlobalConfig,
+ // ) {
+ //   const { cAstRoot } = parse(cSourceCode, moduleRepository);
+ //   const { astRootNode } = process(cAstRoot, moduleRepository);
+ //   interpret(astRootNode, cAstRoot.includedModules, moduleConfig, cSourceCode);
+ // }
 
 
 
@@ -26068,9 +26043,6 @@ function $149c1bd638913645$export$7ed1e80d6eebb0bb(program) {
 }
 function $149c1bd638913645$export$d54d1a0fdc0ee87e(program) {
     return (0, $c20cbec167d66736$export$d54d1a0fdc0ee87e)(program, $149c1bd638913645$export$e6fa218cf6f57ac3);
-}
-function $149c1bd638913645$export$a0451f39bcc24e74(program, modulesConfig) {
-    return (0, $c20cbec167d66736$export$a0451f39bcc24e74)(program, $149c1bd638913645$export$e6fa218cf6f57ac3, modulesConfig);
 }
 async function $149c1bd638913645$export$fef61f332f2c0afc(program, modulesConfig, targetStep) {
     return await (0, $c20cbec167d66736$export$fef61f332f2c0afc)(program, $149c1bd638913645$export$e6fa218cf6f57ac3, targetStep);
@@ -26111,5 +26083,5 @@ function $149c1bd638913645$export$fbcbb0932d163f5c(program) {
 }
 
 
-export {$149c1bd638913645$export$e6fa218cf6f57ac3 as defaultModuleRepository, $149c1bd638913645$export$7ed1e80d6eebb0bb as compileToWat, $149c1bd638913645$export$d54d1a0fdc0ee87e as generate_WAT_AST, $149c1bd638913645$export$a0451f39bcc24e74 as interpret_C_AST, $149c1bd638913645$export$fef61f332f2c0afc as evaluate, $149c1bd638913645$export$ef7acd7185315e22 as compile, $149c1bd638913645$export$528d7c97418b1bdd as compileAndRun, $149c1bd638913645$export$9a15f6f70b6cc031 as runWasm, $149c1bd638913645$export$9d0f5d4929a5c5ad as generate_processed_C_AST, $149c1bd638913645$export$fbcbb0932d163f5c as generate_C_AST, $6267764a9e4139a0$export$c11d6cfb99c9fdfb as InstructionType, $29d5c7e8e9cfab6e$export$7b429031fe89ea9f as controlItemToString};
+export {$149c1bd638913645$export$e6fa218cf6f57ac3 as defaultModuleRepository, $149c1bd638913645$export$7ed1e80d6eebb0bb as compileToWat, $149c1bd638913645$export$d54d1a0fdc0ee87e as generate_WAT_AST, $149c1bd638913645$export$fef61f332f2c0afc as evaluate, $149c1bd638913645$export$ef7acd7185315e22 as compile, $149c1bd638913645$export$528d7c97418b1bdd as compileAndRun, $149c1bd638913645$export$9a15f6f70b6cc031 as runWasm, $149c1bd638913645$export$9d0f5d4929a5c5ad as generate_processed_C_AST, $149c1bd638913645$export$fbcbb0932d163f5c as generate_C_AST, $6267764a9e4139a0$export$c11d6cfb99c9fdfb as InstructionType, $29d5c7e8e9cfab6e$export$7b429031fe89ea9f as controlItemToString};
 //# sourceMappingURL=index.js.map
