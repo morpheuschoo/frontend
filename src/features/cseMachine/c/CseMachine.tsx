@@ -7,8 +7,6 @@ import { Control } from 'src/features/cseMachine/c/components/control/Control';
 import { defaultBackgroundColor } from '../CseMachineUtils';
 import { Environment } from './components/environment/Environment';
 import { Memory } from './components/memory/Memory';
-// import { Memory } from './components/memory/Memory';
-// import { Environment } from './components/Environment';
 import { Stash } from './components/stash/Stash';
 import { CConfig, ShapeDefaultProps } from './config/CCSEMachineConfig';
 

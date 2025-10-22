@@ -8,11 +8,12 @@ import { CseMachine } from '../../CseMachine';
 import { CVisible } from '../../CVisible';
 import { topToBottom } from '../../utils';
 import { MemoryRow } from '../memory/MemoryRow';
+import { MemorySegment } from '../memory/MemorySegment';
 
 export class StackFrameVis extends CVisible {
-  public frame: StackFrame;
-  public memory: CMemory;
-  public byteRows: MemoryRow[];
+  private frame: StackFrame;
+  private memory: CMemory;
+  private memorySegment: MemorySegment;
 
   constructor(x: number, y: number, memory: CMemory, frame: StackFrame) {
     super();
@@ -20,16 +21,22 @@ export class StackFrameVis extends CVisible {
     this._y = y;
     this.memory = memory;
     this.frame = frame;
-    this.byteRows = [];
+
+    const byteRows: MemoryRow[] = [];
 
     for (let i = frame.stackPointer; i <= frame.basePointer + frame.sizeOfReturn - 3; i += 4) {
       const newRow =
         new MemoryRow(i, memory.memory.buffer.slice(i, i + 4), 0, 0, );
-      this.byteRows.push(newRow);
+      byteRows.push(newRow);
     }
     this._width = CControlStashMemoryConfig.memoryRowWidth;
     this._height = CControlStashMemoryConfig.memoryRowHeight + CControlStashMemoryConfig.memoryRowPadding;
-    this.byteRows.forEach(row => (this._height += row.height()));
+    this.memorySegment = new MemorySegment(
+      byteRows,
+      0,
+      CControlStashMemoryConfig.memoryRowHeight,
+      "#EFF6FF",
+    )
   }
 
   draw(key?: number): React.ReactNode {
@@ -69,20 +76,7 @@ export class StackFrameVis extends CVisible {
         </KonvaGroup>
 
         {/* Memory segment */}
-        <KonvaGroup
-          y={CControlStashMemoryConfig.memoryRowHeight + CControlStashMemoryConfig.memoryRowPadding}
-        >
-          <Rect
-            y={-CControlStashMemoryConfig.memoryRowPadding}
-            key={CseMachine.key++}
-            width={CControlStashMemoryConfig.memoryRowWidth}
-            height={this._height - CControlStashMemoryConfig.memoryRowHeight}
-            fill={'#EFF6FF'}
-            stroke={CControlStashMemoryConfig.memoryRowBorderStroke}
-            strokeWidth={2}
-          />
-          {topToBottom(this.byteRows, 0, 0).components.map(row => row.draw())}
-        </KonvaGroup>
+        {this.memorySegment.draw()}
       </KonvaGroup>
     );
   }

@@ -16,6 +16,10 @@ export const CConfig = Object.freeze({
   FrameMarginY: 10,
   FrameCornerRadius: 3,
 
+  // Scrollable
+  LineHeight: 16,
+  PageHeight: window.innerHeight | 1000,
+
   MemoryMinWidth: 300,
 
   FnRadius: 15,

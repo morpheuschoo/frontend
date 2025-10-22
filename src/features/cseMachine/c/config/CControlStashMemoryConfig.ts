@@ -9,6 +9,8 @@ export const CControlStashMemoryConfig = Object.freeze({
   memoryRowPadding: 4,
   memoryRowBorderStroke: "#1E2939",
 
+  memorySegmentInitialHeight: 300,
+
   stackMemoryRowFillColour: "#EFF6FF",
   stackHeaderBackgroundColour: "#BEDBFF",
   stackHeaderTextColour: "#193CB8",
