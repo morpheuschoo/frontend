@@ -40,7 +40,13 @@ export class Environment extends CVisible {
 
     reversedFrames.forEach(frame => {
       const stroke = '#999';
-      const newFrame = new Frame(frame, methodFramesX, methodFramesY, stroke, this.bindingDimensionMap);
+      const newFrame = new Frame(
+        frame,
+        methodFramesX,
+        methodFramesY,
+        stroke,
+        this.bindingDimensionMap
+      );
       this._methodFrames.push(newFrame);
       methodFramesY += newFrame.height() + CConfig.FramePaddingY;
       methodFramesWidth = Math.max(methodFramesWidth, newFrame.width());

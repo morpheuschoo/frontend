@@ -16,7 +16,7 @@ import { BindingDimensionMap } from './BindingDimensionMap';
 export class Binding extends CVisible {
   private readonly _name: Text;
 
-  private _value: Variable | Method | Text ;
+  private _value: Variable | Method | Text;
 
   private _arrow: Arrow | undefined;
 
@@ -43,8 +43,9 @@ export class Binding extends CVisible {
     const targetDataType: string =
       dataType.type == 'primary' ? dataType.primaryDataType : dataType.type;
 
-    const variableEntry = Array.from(stackFrame.variablesMap.entries())
-      .find(([varName, _]) => varName === name)?.[1];
+    const variableEntry = Array.from(stackFrame.variablesMap.entries()).find(
+      ([varName, _]) => varName === name
+    )?.[1];
 
     // if (dataType.type === 'pointer') {
     //   this._value = new Text(
@@ -108,7 +109,7 @@ export class Binding extends CVisible {
       this._value = new Variable(
         this._name.x() + this._name.width(),
         this.y(),
-        0,              // placeholder value
+        0, // placeholder value
         targetDataType
       );
     }
@@ -146,7 +147,8 @@ export class Binding extends CVisible {
       if (targetDimensions) {
         const verticalDistance = Math.abs(this.y() - targetDimensions.y);
         const baseBendDistance = targetDimensions.endX + 50;
-        const bendOutDistance = baseBendDistance + targetDimensions.additionalBendDistance + (verticalDistance / 10);
+        const bendOutDistance =
+          baseBendDistance + targetDimensions.additionalBendDistance + verticalDistance / 10;
 
         this._arrow = new Arrow(
           this._name.x() + this._name.width(),

@@ -1,3 +1,4 @@
+import React, { RefObject } from 'react';
 import { Group as KonvaGroup, Rect } from 'react-konva';
 import { Text as KonvaText } from 'react-konva';
 import { Memory as CMemory, StackFrame } from 'src/ctowasm/dist';
@@ -14,6 +15,29 @@ export class StackFrameVis extends CVisible {
   private memory: CMemory;
   private memorySegment: MemorySegment;
 
+  public frameRef: RefObject<any> = React.createRef();
+
+  setX(x: number): void {
+    this._x = x;
+    if (this.frameRef.current) {
+      const group = this.frameRef.current;
+      group.x(x);
+    }
+  }
+
+  setY(y: number): void {
+    this._y = y;
+    if (this.frameRef.current) {
+      const group = this.frameRef.current;
+      group.y(y);
+    }
+  }
+
+  height(): number {
+    this._height = CControlStashMemoryConfig.memoryRowHeight + this.memorySegment.height();
+    return this._height;
+  }
+
   constructor(x: number, y: number, memory: CMemory, frame: StackFrame) {
     super();
     this._x = x;
@@ -24,18 +48,17 @@ export class StackFrameVis extends CVisible {
     const byteRows: MemoryRow[] = [];
 
     for (let i = frame.stackPointer; i <= frame.basePointer + frame.sizeOfReturn - 3; i += 4) {
-      const newRow =
-        new MemoryRow(i, this.memory.memory.buffer.slice(i, i + 4), 0, 0, );
+      const newRow = new MemoryRow(i, this.memory.memory.buffer.slice(i, i + 4), 0, 0);
       byteRows.push(newRow);
     }
-    this._width = CControlStashMemoryConfig.memoryRowWidth;
-    this._height = CControlStashMemoryConfig.memoryRowHeight * 2 + CControlStashMemoryConfig.memoryRowPadding;
     this.memorySegment = new MemorySegment(
       byteRows,
       0,
       CControlStashMemoryConfig.memoryRowHeight,
-      "#EFF6FF",
-    )
+      '#EFF6FF'
+    );
+    this._width = CControlStashMemoryConfig.memoryRowWidth;
+    this._height = CControlStashMemoryConfig.memoryRowHeight + this.memorySegment.height();
   }
 
   draw(key?: number): React.ReactNode {
@@ -44,7 +67,7 @@ export class StackFrameVis extends CVisible {
     // }
 
     return (
-      <KonvaGroup key={CseMachine.key++} x={this.x()} y={this.y()}>
+      <KonvaGroup key={CseMachine.key++} x={this.x()} y={this.y()} ref={this.frameRef}>
         <Rect
           {...ShapeDefaultProps}
           width={this.width()}
