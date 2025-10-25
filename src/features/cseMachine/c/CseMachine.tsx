@@ -49,6 +49,8 @@ export class CseMachine {
     CseMachine.environment = new Environment(context.stackFrames);
     CseMachine.memory = new Memory(context.memory, context.stackFrames);
 
+    console.log(CseMachine.control);
+
     this.setVis(this.draw());
 
     // Set icon to blink.

@@ -206,8 +206,11 @@ interface MemoryAddressEntry {
     isGlobal: boolean;
     size: number;
     dataType: DataType;
-    value?: number;
+    value?: number | number[];
     absoluteAddress?: number;
+    isArray?: boolean;
+    arraySize?: number;
+    elementSize?: number;
 }
 declare class MemoryAddressMap {
     constructor(getDataTypeSize: (dataType: any) => number);
@@ -220,6 +223,8 @@ declare class MemoryAddressMap {
 }
 declare class MemoryManager {
     constructor();
+    reload(): void;
+    initFromSymbolTable(symbolTable: SymbolTable): void;
     getAddressMap(): MemoryAddressMap;
     enterScope(scopeName: string): void;
     exitScope(): void;
@@ -670,6 +675,9 @@ declare class StackFrame {
     stackPointer: number;
     sizeOfReturn: number;
     constructor(functionName: string, basePointer: number, stackPointer: number, sizeOfReturn: number, memory: Memory, memoryManager: MemoryManager);
+    getArrayElements(varName: string): number[] | null;
+    getAllArrays(): Map<string, number[]>;
+    debugPrintVariables(): void;
 }
 interface CContext {
     astRoot: CAstRootP;
@@ -716,7 +724,6 @@ type WatCompilationResult = SuccessfulWatCompilationResult | FailedWatCompilatio
 export const defaultModuleRepository: ModuleRepository;
 export function compileToWat(program: string): WatCompilationResult;
 export function generate_WAT_AST(program: string): string;
-export function interpret_C_AST(program: string, modulesConfig: ModulesGlobalConfig): void;
 export function evaluate(program: string, modulesConfig: ModulesGlobalConfig, targetStep: number): Promise<EvaluationResult>;
 export function compile(program: string): Promise<CompilationResult>;
 export function compileAndRun(program: string, modulesConfig?: ModulesGlobalConfig): Promise<CompilationResult>;

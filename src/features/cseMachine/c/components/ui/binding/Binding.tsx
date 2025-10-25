@@ -7,6 +7,7 @@ import { Method } from '../../../../java/components/Method';
 import { CConfig } from '../../../config/CCSEMachineConfig';
 import { CseMachine } from '../../../CseMachine';
 import { CVisible } from '../../../CVisible';
+import { ArrayValue } from '../ArrayValue';
 import { Arrow } from '../Arrow';
 import { Text } from '../Text';
 import { Variable } from '../Variable';
@@ -15,9 +16,7 @@ import { BindingDimensionMap } from './BindingDimensionMap';
 /** a Binding is a key-value pair in a Frame */
 export class Binding extends CVisible {
   private readonly _name: Text;
-
-  private _value: Variable | Method | Text ;
-
+  private _value: Variable | Method | Text | ArrayValue;
   private _arrow: Arrow | undefined;
 
   constructor(
@@ -34,7 +33,7 @@ export class Binding extends CVisible {
     this._y = y;
 
     this._name = new Text(
-      name + CConfig.VariableColon, // := is part of
+      name + CConfig.VariableColon,
       defaultTextColor(),
       this.x(),
       this.y() + CConfig.FontSize + CConfig.TextPaddingX
@@ -46,56 +45,7 @@ export class Binding extends CVisible {
     const variableEntry = Array.from(stackFrame.variablesMap.entries())
       .find(([varName, _]) => varName === name)?.[1];
 
-    // if (dataType.type === 'pointer') {
-    //   this._value = new Text(
-    //     '',
-    //     defaultTextColor(),
-    //     this._name.x() + this._name.width(),
-    //     this.y() + CConfig.FontSize + CConfig.TextPaddingX
-    //   );
-
-    //   const targetDimensions = this.dimensionMap.getDimensions(value);
-    //   if (targetDimensions) {
-    //     const verticalDistance = Math.abs(this.y() - targetDimensions.y);
-    //     const baseBendDistance = targetDimensions.endX + 50;
-    //     const bendOutDistance = baseBendDistance + (verticalDistance / 10);
-
-    //     this._arrow = new Arrow(
-    //       this._name.x() + this._name.width(),
-    //       this._name.y() + this._name.height() / 2,
-    //       targetDimensions.endX,
-    //       targetDimensions.centerY
-    //     );
-    //     this._arrow.setMiddleX(bendOutDistance);
-    //   }
-
-    //   if (variableEntry?.absoluteAddress !== undefined) {
-    //     this.dimensionMap.register(
-    //       variableEntry.absoluteAddress,
-    //       this._name.x(),
-    //       this._name.y(),
-    //       this._name.width(),
-    //       this._name.height()
-    //     );
-    //   }
-    // } else {
-    //   this._value = new Variable(
-    //     this._name.x() + this._name.width(),
-    //     this.y(),
-    //     value,
-    //     targetDataType
-    //   );
-
-    //   if (variableEntry?.absoluteAddress !== undefined) {
-    //     this.dimensionMap.register(
-    //       variableEntry.absoluteAddress,
-    //       this._value.x(),
-    //       this._value.y(),
-    //       this._value.width(),
-    //       this._value.height()
-    //     );
-    //   }
-    // }
+    let arrayElements: number[] = [];
 
     if (dataType.type === 'pointer') {
       this._value = new Text(
@@ -104,11 +54,21 @@ export class Binding extends CVisible {
         this._name.x() + this._name.width(),
         this.y() + CConfig.FontSize + CConfig.TextPaddingX
       );
+    } else if (dataType.type === 'array') {
+      const arrayX = this._name.x() + this._name.width();
+      const arrayY = this._name.y() - this._name.height() / 2;
+
+      arrayElements = stackFrame.getArrayElements(name) || [];
+      this._value = new ArrayValue(
+        arrayX,
+        arrayY,
+        arrayElements
+      );
     } else {
       this._value = new Variable(
         this._name.x() + this._name.width(),
         this.y(),
-        0,              // placeholder value
+        0,
         targetDataType
       );
     }
@@ -124,6 +84,22 @@ export class Binding extends CVisible {
           this._name.height(),
           50
         );
+      } else if (dataType.type === 'array' && variableEntry.elementSize) {
+        const arrayValue = this._value as ArrayValue;
+        for (let i = 0; i < arrayElements.length; i++) {
+          const unit = arrayValue.getUnit(i);
+          if (unit) {
+            const elementAddress = variableEntry.absoluteAddress + (i * variableEntry.elementSize);
+            this.dimensionMap.register(
+              elementAddress,
+              unit.x() + unit.width() / 2,
+              unit.y() + unit.height(),
+              0,
+              0,
+              0
+            );
+          }
+        }
       } else {
         this.dimensionMap.register(
           variableEntry.absoluteAddress,
@@ -140,8 +116,8 @@ export class Binding extends CVisible {
     this._width = this._value.x() + this._value.width() - this._name.x();
   }
 
-  updateValue(newValue: number, dataType: DataType) {
-    if (dataType.type === 'pointer') {
+  updateValue(newValue: number | number[], dataType: DataType, stackFrame?: StackFrame, name?: string) {
+    if (dataType.type === 'pointer' && typeof newValue === 'number') {
       const targetDimensions = this.dimensionMap.getDimensions(newValue);
       if (targetDimensions) {
         const verticalDistance = Math.abs(this.y() - targetDimensions.y);
@@ -156,7 +132,9 @@ export class Binding extends CVisible {
         );
         this._arrow.setMiddleX(bendOutDistance);
       }
-    } else if (this._value instanceof Variable) {
+    } else if (dataType.type === 'array' && stackFrame && name) {
+      // TODO: DRAW ARROW TO ARRAY
+    } else if (this._value instanceof Variable && typeof newValue === 'number') {
       const targetDataType: string =
         dataType.type == 'primary' ? dataType.primaryDataType : dataType.type;
 
@@ -171,6 +149,10 @@ export class Binding extends CVisible {
 
   get value() {
     return this._value;
+  }
+
+  get name(): string {
+    return this._name.text.replace(CConfig.VariableColon, '');
   }
 
   setArrowToX(x: number) {
