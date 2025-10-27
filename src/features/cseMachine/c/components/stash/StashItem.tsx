@@ -21,6 +21,7 @@ export class StashItem extends CVisible {
 
   constructor(
     x: number,
+    y: number,
     private readonly _text: string,
     private readonly _stroke: string
     // reference?: Method | Frame | Variable
@@ -29,7 +30,7 @@ export class StashItem extends CVisible {
 
     // Position.
     this._x = x;
-    this._y = CControlStashMemoryConfig.StashPosY;
+    this._y = y;
 
     // Height and width.
     this._height =

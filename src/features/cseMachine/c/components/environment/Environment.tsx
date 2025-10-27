@@ -3,7 +3,6 @@ import { StackFrame } from 'src/ctowasm/dist';
 
 import { Line } from '../../../java/components/Line';
 import { Obj } from '../../../java/components/Object';
-import { CControlStashMemoryConfig } from '../../config/CControlStashMemoryConfig';
 import { CConfig } from '../../config/CCSEMachineConfig';
 import { CseMachine } from '../../CseMachine';
 import { CVisible } from '../../CVisible';
@@ -17,22 +16,16 @@ export class Environment extends CVisible {
   private readonly _lines: Line[] = [];
   private readonly bindingDimensionMap: BindingDimensionMap = new BindingDimensionMap();
 
-  constructor(stackFrames: StackFrame[]) {
+  constructor(stackFrames: StackFrame[], x: number, y: number) {
     super();
 
     // Position.
-    this._x =
-      CControlStashMemoryConfig.ControlPosX +
-      CControlStashMemoryConfig.ControlItemWidth +
-      2 * CConfig.CanvasPaddingX;
-    this._y =
-      CControlStashMemoryConfig.StashPosY +
-      CControlStashMemoryConfig.StashItemHeight +
-      2 * CConfig.CanvasPaddingY;
+    this._x = x;
+    this._y = y;
 
     // Create method frames.
-    const methodFramesX = this._x;
-    let methodFramesY: number = this._y;
+    const methodFramesX: number = this.x();
+    let methodFramesY: number = this.y();
     let methodFramesWidth = Number(CConfig.FrameMinWidth);
 
     const reversedFrames = [...stackFrames].reverse();
@@ -54,6 +47,7 @@ export class Environment extends CVisible {
       if (parentFrame) {
         newFrame.setParent(parentFrame);
       }
+      this._width = Math.max(this._width, newFrame.width());
       parentFrame = newFrame;
     });
 

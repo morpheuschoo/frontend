@@ -31,20 +31,12 @@ export class Memory extends CVisible {
   private heap: HeapVis;
   private dataSegment: DataSegmentVis;
 
-  constructor(memory: CMemory, frames: StackFrame[]) {
+  constructor(memory: CMemory, frames: StackFrame[], x: number, y: number) {
     super();
     this.memory = memory;
 
-    this._x =
-      CControlStashMemoryConfig.ControlPosX +
-      CControlStashMemoryConfig.ControlItemWidth +
-      2 * CConfig.CanvasPaddingX +
-      CConfig.FrameMaxWidth;
-
-    this._y =
-      CControlStashMemoryConfig.StashPosY +
-      CControlStashMemoryConfig.StashItemHeight +
-      2 * CConfig.CanvasPaddingY;
+    this._x = x;
+    this._y = y;
 
     this._width = CControlStashMemoryConfig.memoryRowWidth;
 

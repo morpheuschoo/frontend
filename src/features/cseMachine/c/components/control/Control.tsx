@@ -18,15 +18,12 @@ export class Control extends CVisible {
     return this._controlItems.length == 0;
   }
 
-  constructor(control: CControl) {
+  constructor(control: CControl, x: number, y: number) {
     super();
 
     // Position.
-    this._x = CControlStashMemoryConfig.ControlPosX;
-    this._y =
-      CControlStashMemoryConfig.ControlPosY +
-      CControlStashMemoryConfig.StashItemHeight +
-      CControlStashMemoryConfig.StashItemTextPadding * 2;
+    this._x = x;
+    this._y = y;
 
     // Create each ControlItem.
     let controlItemY: number = this._y;
@@ -52,6 +49,7 @@ export class Control extends CVisible {
       const unhighlightOnHover = () => CseMachine.setEditorHighlightedLines([]);
 
       const currControlItem = new ControlItem(
+        this.x(),
         controlItemY,
         controlItemText,
         controlItemStroke,

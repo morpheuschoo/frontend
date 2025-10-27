@@ -1,6 +1,6 @@
 import { KonvaEventObject } from 'konva/lib/Node';
 import React, { RefObject } from 'react';
-import { Layer, Rect, Stage } from 'react-konva';
+import { Group, Layer, Rect, Stage } from 'react-konva';
 import { FunctionTable } from 'src/ctowasm/dist';
 import { Control } from 'src/features/cseMachine/c/components/control/Control';
 
@@ -8,6 +8,7 @@ import { defaultBackgroundColor } from '../CseMachineUtils';
 import { Environment } from './components/environment/Environment';
 import { Memory } from './components/memory/Memory';
 import { Stash } from './components/stash/Stash';
+import { CControlStashMemoryConfig } from './config/CControlStashMemoryConfig';
 import { CConfig, ShapeDefaultProps } from './config/CCSEMachineConfig';
 
 type SetVis = (vis: React.ReactNode) => void;
@@ -43,13 +44,28 @@ export class CseMachine {
     if (!this.setVis || !context.control) {
       throw new Error('C CSE Machine not initialised');
     }
-    CseMachine.control = new Control(context.control);
-    CseMachine.stash = new Stash(context.stash);
+    CseMachine.stash = new Stash(
+      context.stash,
+      CControlStashMemoryConfig.StashPosX,
+      CControlStashMemoryConfig.StashPosY,
+    );
+    CseMachine.control = new Control(
+      context.control,
+      CControlStashMemoryConfig.ControlPosX,
+      CseMachine.stash.y() + CseMachine.stash.height() + CConfig.CanvasPaddingY
+    );
     CseMachine.functions = context.astRoot.functionTable;
-    CseMachine.environment = new Environment(context.stackFrames);
-    CseMachine.memory = new Memory(context.memory, context.stackFrames);
-
-    console.log(CseMachine.control);
+    CseMachine.environment = new Environment(
+      context.stackFrames,
+      CseMachine.control.x() + CseMachine.control.width() + CConfig.CanvasPaddingX,
+       CseMachine.stash.y() + CseMachine.stash.height() + CConfig.CanvasPaddingY
+    );
+    CseMachine.memory = new Memory(
+      context.memory, 
+      context.stackFrames,
+      CseMachine.environment.x() + CseMachine.environment.width() + CConfig.CanvasPaddingX,
+      CseMachine.stash.y() + CseMachine.stash.height() + CConfig.CanvasPaddingY
+    );
 
     this.setVis(this.draw());
 
@@ -131,7 +147,7 @@ export class CseMachine {
             <Stage
               width={+CConfig.CanvasMinWidth}
               height={+CConfig.CanvasMinHeight}
-              ref={this.stageRef}
+              ref={CseMachine.stageRef}
               draggable
               onWheel={CseMachine.zoomStage}
               className="draggable"
