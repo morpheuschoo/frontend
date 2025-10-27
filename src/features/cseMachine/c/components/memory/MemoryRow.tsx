@@ -25,9 +25,9 @@ export class MemoryRow extends CVisible {
     const padding = CControlStashMemoryConfig.byteBoxPadding;
     const addressText = new Text(
       `0x${this.address.toString(16).padStart(2, '0').toUpperCase()}`,
-      "#4A5565",
+      '#4A5565',
       this.x() + padding,
-      this.y() + 5,
+      this.y() + 5
     );
     const totalBytes = this.bytes.length;
     const totalPadding = padding * (totalBytes - 1);
@@ -38,39 +38,34 @@ export class MemoryRow extends CVisible {
 
     return (
       <KonvaGroup key={CseMachine.key++}>
-        <Rect
-          x={this.x()}
-          y={this.y()}
-          width={this.width()}
-          height={this.height()}
-        />
+        <Rect x={this.x()} y={this.y()} width={this.width()} height={this.height()} />
         {/* address */}
         {addressText.draw()}
 
         {/* byte boxes */}
         {Array.from(this.bytes).map((value: number, index: number) => (
           <KonvaGroup
-          key={CseMachine.key++}
-          x={byteBoxesStartX + index * (CControlStashMemoryConfig.byteBoxWidth + padding)}
-          y={this.y()}
+            key={CseMachine.key++}
+            x={byteBoxesStartX + index * (CControlStashMemoryConfig.byteBoxWidth + padding)}
+            y={this.y()}
           >
-          <Rect
-            width={CControlStashMemoryConfig.byteBoxWidth}
-            height={CControlStashMemoryConfig.byteBoxHeight}
-            stroke={CControlStashMemoryConfig.byteBoxStroke}
-            fill={CControlStashMemoryConfig.byteBoxFill}
-            strokeWidth={1}
-            cornerRadius={2}
-          />
-          <KonvaText
-            text={value.toString(16).toUpperCase().padStart(2, '0')}
-            fontSize={CControlStashMemoryConfig.FontSize}
-            fill={CControlStashMemoryConfig.byteBoxFontColour}
-            width={CControlStashMemoryConfig.byteBoxWidth}
-            height={CControlStashMemoryConfig.byteBoxHeight}
-            align="center"
-            verticalAlign="middle"
-          />
+            <Rect
+              width={CControlStashMemoryConfig.byteBoxWidth}
+              height={CControlStashMemoryConfig.byteBoxHeight}
+              stroke={CControlStashMemoryConfig.byteBoxStroke}
+              fill={CControlStashMemoryConfig.byteBoxFill}
+              strokeWidth={1}
+              cornerRadius={2}
+            />
+            <KonvaText
+              text={value.toString(16).toUpperCase().padStart(2, '0')}
+              fontSize={CControlStashMemoryConfig.FontSize}
+              fill={CControlStashMemoryConfig.byteBoxFontColour}
+              width={CControlStashMemoryConfig.byteBoxWidth}
+              height={CControlStashMemoryConfig.byteBoxHeight}
+              align="center"
+              verticalAlign="middle"
+            />
           </KonvaGroup>
         ))}
       </KonvaGroup>

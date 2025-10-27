@@ -1,10 +1,10 @@
 import React from 'react';
 import { Group, Rect, Text as KonvaText } from 'react-konva';
 
+import { defaultStrokeColor, defaultTextColor } from '../../../CseMachineUtils';
 import { CConfig, ShapeDefaultProps } from '../../config/CCSEMachineConfig';
 import { CseMachine } from '../../CseMachine';
 import { CVisible } from '../../CVisible';
-import { defaultStrokeColor, defaultTextColor } from '../../../CseMachineUtils';
 
 export class ArrayUnit extends CVisible {
   private readonly data: number;

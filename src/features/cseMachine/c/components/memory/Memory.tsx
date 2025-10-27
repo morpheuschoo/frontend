@@ -48,12 +48,7 @@ export class Memory extends CVisible {
 
     this._width = CControlStashMemoryConfig.memoryRowWidth;
 
-    const {
-      dataSegmentSizeInBytes,
-      stackPointer,
-      basePointer,
-      heapPointer
-    } = memory.getPointers();
+    const { dataSegmentSizeInBytes, stackPointer, basePointer, heapPointer } = memory.getPointers();
 
     this.dataSegmentSizeInBytes = dataSegmentSizeInBytes;
     this.stackPointer = stackPointer;
@@ -64,10 +59,12 @@ export class Memory extends CVisible {
     this.heap = new HeapVis(
       this.memory.memory.buffer.slice(this.dataSegmentSizeInBytes + 4, this.heapPointer),
       this.dataSegmentSizeInBytes + 4,
-      this.heapPointer - 1,
-    )
-    this.dataSegment = new DataSegmentVis(this.memory.memory.buffer.slice(0, this.dataSegmentSizeInBytes));
-  
+      this.heapPointer - 1
+    );
+    this.dataSegment = new DataSegmentVis(
+      this.memory.memory.buffer.slice(0, this.dataSegmentSizeInBytes)
+    );
+
     // Set all 3 segments on top of each other
     this.dataSegment.setX(this.x());
     this.dataSegment.setY(this.y());

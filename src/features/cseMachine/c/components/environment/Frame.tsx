@@ -38,7 +38,12 @@ export class Frame extends CVisible implements IHoverable {
     this._x = x;
     this._y = y;
 
-    this.name = new Text(frame.functionName, defaultTextColor(), this._x + CConfig.FramePaddingX, this._y);
+    this.name = new Text(
+      frame.functionName,
+      defaultTextColor(),
+      this._x + CConfig.FramePaddingX,
+      this._y
+    );
 
     this._width = Math.max(
       CConfig.FrameMinWidth,

@@ -20621,8 +20621,8 @@ function $812b9a955e75cbf9$export$2e2bcd8739ae039(sourceCode, moduleRepository) 
 
 
 
-function $278774b275ed49b9$export$41f976199fdafdab(condition, symbolTable) {
-    const processedCondition = (0, $551bb05b84852d99$export$2e2bcd8739ae039)(condition, symbolTable);
+function $278774b275ed49b9$export$41f976199fdafdab(condition, symbolTable, memoryManager) {
+    const processedCondition = (0, $551bb05b84852d99$export$2e2bcd8739ae039)(condition, symbolTable, memoryManager);
     const dataTypeOfConditionExpression = $278774b275ed49b9$export$eb27e3f48ee2e547({
         expression: processedCondition,
         convertArrayToPointer: true,
@@ -21381,7 +21381,7 @@ function $cf264a5b1eb44de7$export$2e2bcd8739ae039(node, symbolTable, enclosingFu
             const processedForLoopNode = {
                 type: "ForLoop",
                 clause: clause,
-                condition: node.condition !== null ? (0, $278774b275ed49b9$export$41f976199fdafdab)(node.condition, forLoopSymbolTable) : null,
+                condition: node.condition !== null ? (0, $278774b275ed49b9$export$41f976199fdafdab)(node.condition, forLoopSymbolTable, memoryManager) : null,
                 update: node.update !== null ? $cf264a5b1eb44de7$export$2e2bcd8739ae039(node.update, forLoopSymbolTable, enclosingFunc, memoryManager) : [],
                 body: $cf264a5b1eb44de7$var$processLoopBody(node.body, forLoopSymbolTable, enclosingFunc, memoryManager),
                 position: node.position
@@ -21392,7 +21392,7 @@ function $cf264a5b1eb44de7$export$2e2bcd8739ae039(node, symbolTable, enclosingFu
         } else if (node.type === "DoWhileLoop" || node.type === "WhileLoop") return [
             {
                 type: node.type,
-                condition: (0, $278774b275ed49b9$export$41f976199fdafdab)(node.condition, symbolTable),
+                condition: (0, $278774b275ed49b9$export$41f976199fdafdab)(node.condition, symbolTable, memoryManager),
                 body: $cf264a5b1eb44de7$var$processLoopBody(node.body, symbolTable, enclosingFunc, memoryManager),
                 position: node.position
             }
@@ -21412,7 +21412,7 @@ function $cf264a5b1eb44de7$export$2e2bcd8739ae039(node, symbolTable, enclosingFu
         } else if (node.type === "SelectionStatement") return [
             {
                 type: "SelectionStatement",
-                condition: (0, $278774b275ed49b9$export$41f976199fdafdab)(node.condition, symbolTable),
+                condition: (0, $278774b275ed49b9$export$41f976199fdafdab)(node.condition, symbolTable, memoryManager),
                 ifStatements: $cf264a5b1eb44de7$export$2e2bcd8739ae039(node.ifStatement, symbolTable, enclosingFunc, memoryManager),
                 elseStatements: node.elseStatement ? $cf264a5b1eb44de7$export$2e2bcd8739ae039(node.elseStatement, symbolTable, enclosingFunc, memoryManager) : null,
                 position: node.position
@@ -21516,7 +21516,7 @@ function $cf264a5b1eb44de7$export$2e2bcd8739ae039(node, symbolTable, enclosingFu
             return [
                 {
                     type: "SelectionStatement",
-                    condition: (0, $278774b275ed49b9$export$41f976199fdafdab)(node.condition, symbolTable),
+                    condition: (0, $278774b275ed49b9$export$41f976199fdafdab)(node.condition, symbolTable, memoryManager),
                     ifStatements: $cf264a5b1eb44de7$export$2e2bcd8739ae039(node.trueExpression, symbolTable, enclosingFunc, memoryManager),
                     elseStatements: $cf264a5b1eb44de7$export$2e2bcd8739ae039(node.falseExpression, symbolTable, enclosingFunc, memoryManager),
                     position: node.position
@@ -25651,15 +25651,20 @@ async function $29d5c7e8e9cfab6e$export$3567556d58c2cae(astRootNode, includedMod
     return await interpreter.interpretTillStep(targetStep);
 }
 function $29d5c7e8e9cfab6e$export$5a4be6c31be3bdd2(controlItem) {
-    const codePosition = controlItem.position;
-    // extract the code position at a line start and line end
-    const lines = (0, $bf9b58631501cd70$export$269330a1f1074312).sourceCode.split("\n");
-    const extractedCode = lines.slice(codePosition.start.line - 1, codePosition.end.line).filter((line)=>line.trim() !== "");
-    if (extractedCode.length > 0) {
-        extractedCode[0] = extractedCode[0].slice(codePosition.start.column - 1);
-        extractedCode[extractedCode.length - 1] = extractedCode[extractedCode.length - 1].slice(0, codePosition.end.column - 1);
-    }
-    return extractedCode.join("\n");
+    // const codePosition = controlItem.position;
+    // // extract the code position at a line start and line end
+    // const lines = Runtime.sourceCode.split("\n");
+    // const extractedCode = lines
+    //   .slice(codePosition.start.line - 1, codePosition.end.line)
+    //   .filter((line) => line.trim() !== "");
+    // if (extractedCode.length > 0) {
+    //   extractedCode[0] = extractedCode[0].slice(codePosition.start.column - 1);
+    //   extractedCode[extractedCode.length - 1] = extractedCode[
+    //     extractedCode.length - 1
+    //   ].slice(0, codePosition.end.column - 1);
+    // }
+    // return extractedCode.join("\n");
+    return "";
 }
 function $29d5c7e8e9cfab6e$export$7b429031fe89ea9f(controlItem) {
     if ((0, $6267764a9e4139a0$export$517b0c6d75337fc8)(controlItem)) {
@@ -26007,7 +26012,7 @@ class $8c698c0438819abb$export$85b768e21d5f5a71 {
 async function $c20cbec167d66736$export$ef7acd7185315e22(cSourceCode, moduleRepository) {
     try {
         const { cAstRoot: cAstRoot, warnings: warnings } = (0, $812b9a955e75cbf9$export$2e2bcd8739ae039)(cSourceCode, moduleRepository);
-        const { astRootNode: astRootNode, includedModules: includedModules, warnings: processorWarnings } = (0, $3bbec8f49ad76a86$export$2e2bcd8739ae039)(cAstRoot, moduleRepository);
+        const { astRootNode: astRootNode, includedModules: includedModules, warnings: processorWarnings } = (0, $3bbec8f49ad76a86$export$2e2bcd8739ae039)(cAstRoot, moduleRepository, new (0, $8c698c0438819abb$export$85b768e21d5f5a71)());
         warnings.push(...processorWarnings.map((w)=>(0, $28ac839a9eca26f5$export$9a24d8f7b932fdc5)(w.message, cSourceCode, w.position)));
         const wasmModule = (0, $edd1d19f265dea24$export$2e2bcd8739ae039)(astRootNode, moduleRepository);
         const output = await (0, $35ff0e651cf79adf$export$244319998795f476)((0, $df2c68a1897a685b$export$38d6b8478af371c3)(wasmModule));
@@ -26058,7 +26063,7 @@ async function $c20cbec167d66736$export$fef61f332f2c0afc(cSourceCode, moduleRepo
 function $c20cbec167d66736$export$7ed1e80d6eebb0bb(cSourceCode, moduleRepository) {
     try {
         const { cAstRoot: cAstRoot, warnings: warnings } = (0, $812b9a955e75cbf9$export$2e2bcd8739ae039)(cSourceCode, moduleRepository);
-        const { astRootNode: astRootNode, warnings: processorWarnings } = (0, $3bbec8f49ad76a86$export$2e2bcd8739ae039)(cAstRoot, moduleRepository);
+        const { astRootNode: astRootNode, warnings: processorWarnings } = (0, $3bbec8f49ad76a86$export$2e2bcd8739ae039)(cAstRoot, moduleRepository, new (0, $8c698c0438819abb$export$85b768e21d5f5a71)());
         warnings.push(...processorWarnings.map((w)=>(0, $28ac839a9eca26f5$export$9a24d8f7b932fdc5)(w.message, cSourceCode, w.position)));
         const wasmModule = (0, $edd1d19f265dea24$export$2e2bcd8739ae039)(astRootNode, moduleRepository);
         const output = (0, $df2c68a1897a685b$export$38d6b8478af371c3)(wasmModule);
@@ -26091,7 +26096,7 @@ function $c20cbec167d66736$export$fbcbb0932d163f5c(cSourceCode, moduleRepository
 function $c20cbec167d66736$export$9d0f5d4929a5c5ad(cSourceCode, moduleRepository) {
     try {
         const { cAstRoot: cAstRoot } = (0, $812b9a955e75cbf9$export$2e2bcd8739ae039)(cSourceCode, moduleRepository);
-        const { astRootNode: astRootNode } = (0, $3bbec8f49ad76a86$export$2e2bcd8739ae039)(cAstRoot, moduleRepository);
+        const { astRootNode: astRootNode } = (0, $3bbec8f49ad76a86$export$2e2bcd8739ae039)(cAstRoot, moduleRepository, new (0, $8c698c0438819abb$export$85b768e21d5f5a71)());
         return (0, $28ac839a9eca26f5$export$d5b7a8bf56ee1fe2)(astRootNode);
     } catch (e) {
         if (e instanceof (0, $28ac839a9eca26f5$export$53d7a5fe44e5fb7e)) e.generateCompilationErrorMessage(cSourceCode);
@@ -26100,7 +26105,7 @@ function $c20cbec167d66736$export$9d0f5d4929a5c5ad(cSourceCode, moduleRepository
 }
 function $c20cbec167d66736$export$d54d1a0fdc0ee87e(cSourceCode, moduleRepository) {
     const { cAstRoot: cAstRoot } = (0, $812b9a955e75cbf9$export$2e2bcd8739ae039)(cSourceCode, moduleRepository);
-    const { astRootNode: astRootNode } = (0, $3bbec8f49ad76a86$export$2e2bcd8739ae039)(cAstRoot, moduleRepository);
+    const { astRootNode: astRootNode } = (0, $3bbec8f49ad76a86$export$2e2bcd8739ae039)(cAstRoot, moduleRepository, new (0, $8c698c0438819abb$export$85b768e21d5f5a71)());
     //checkForErrors(cSourceCode, CAst, Object.keys(wasmModuleImports)); // use semantic analyzer to check for semantic errors
     const wasmAst = (0, $edd1d19f265dea24$export$2e2bcd8739ae039)(astRootNode, moduleRepository);
     return (0, $28ac839a9eca26f5$export$d5b7a8bf56ee1fe2)(wasmAst);

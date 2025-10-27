@@ -7,26 +7,26 @@ export const CControlStashMemoryConfig = Object.freeze({
   memoryRowHeight: 30,
   memoryRowWidth: 300,
   memoryRowPadding: 4,
-  memoryRowBorderStroke: "#1E2939",
+  memoryRowBorderStroke: '#1E2939',
 
   memorySegmentInitialHeight: 300,
 
-  stackMemoryRowFillColour: "#EFF6FF",
-  stackHeaderBackgroundColour: "#BEDBFF",
-  stackHeaderTextColour: "#193CB8",
+  stackMemoryRowFillColour: '#EFF6FF',
+  stackHeaderBackgroundColour: '#BEDBFF',
+  stackHeaderTextColour: '#193CB8',
 
-  heapHeaderBackgroundColour: "#B9F8CF",
-  heapHeaderTextColour: "#016630",
+  heapHeaderBackgroundColour: '#B9F8CF',
+  heapHeaderTextColour: '#016630',
 
-  dataSegmentHeaderBackgroundColour: "#FFD6A8",
-  dataSegmentTextColour: "#9F2D00",
+  dataSegmentHeaderBackgroundColour: '#FFD6A8',
+  dataSegmentTextColour: '#9F2D00',
 
   byteBoxWidth: 25,
   byteBoxHeight: 25,
   byteBoxPadding: 4,
-  byteBoxStroke: "#99A1AF",
-  byteBoxFill: "#FFFFFF",
-  byteBoxFontColour: "#0A0A0A",
+  byteBoxStroke: '#99A1AF',
+  byteBoxFill: '#FFFFFF',
+  byteBoxFontColour: '#0A0A0A',
 
   ControlItemWidth: 290,
   ControlItemTextPadding: 10,

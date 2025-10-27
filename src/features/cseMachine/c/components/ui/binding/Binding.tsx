@@ -42,8 +42,9 @@ export class Binding extends CVisible {
     const targetDataType: string =
       dataType.type == 'primary' ? dataType.primaryDataType : dataType.type;
 
-    const variableEntry = Array.from(stackFrame.variablesMap.entries())
-      .find(([varName, _]) => varName === name)?.[1];
+    const variableEntry = Array.from(stackFrame.variablesMap.entries()).find(
+      ([varName, _]) => varName === name
+    )?.[1];
 
     let arrayElements: number[] = [];
 
@@ -59,18 +60,9 @@ export class Binding extends CVisible {
       const arrayY = this._name.y() - this._name.height() / 2;
 
       arrayElements = stackFrame.getArrayElements(name) || [];
-      this._value = new ArrayValue(
-        arrayX,
-        arrayY,
-        arrayElements
-      );
+      this._value = new ArrayValue(arrayX, arrayY, arrayElements);
     } else {
-      this._value = new Variable(
-        this._name.x() + this._name.width(),
-        this.y(),
-        0,
-        targetDataType
-      );
+      this._value = new Variable(this._name.x() + this._name.width(), this.y(), 0, targetDataType);
     }
 
     // Register dimensions
@@ -89,7 +81,7 @@ export class Binding extends CVisible {
         for (let i = 0; i < arrayElements.length; i++) {
           const unit = arrayValue.getUnit(i);
           if (unit) {
-            const elementAddress = variableEntry.absoluteAddress + (i * variableEntry.elementSize);
+            const elementAddress = variableEntry.absoluteAddress + i * variableEntry.elementSize;
             this.dimensionMap.register(
               elementAddress,
               unit.x() + unit.width() / 2,
@@ -116,13 +108,19 @@ export class Binding extends CVisible {
     this._width = this._value.x() + this._value.width() - this._name.x();
   }
 
-  updateValue(newValue: number | number[], dataType: DataType, stackFrame?: StackFrame, name?: string) {
+  updateValue(
+    newValue: number | number[],
+    dataType: DataType,
+    stackFrame?: StackFrame,
+    name?: string
+  ) {
     if (dataType.type === 'pointer' && typeof newValue === 'number') {
       const targetDimensions = this.dimensionMap.getDimensions(newValue);
       if (targetDimensions) {
         const verticalDistance = Math.abs(this.y() - targetDimensions.y);
         const baseBendDistance = targetDimensions.endX + 50;
-        const bendOutDistance = baseBendDistance + targetDimensions.additionalBendDistance + (verticalDistance / 10);
+        const bendOutDistance =
+          baseBendDistance + targetDimensions.additionalBendDistance + verticalDistance / 10;
 
         this._arrow = new Arrow(
           this._name.x() + this._name.width(),

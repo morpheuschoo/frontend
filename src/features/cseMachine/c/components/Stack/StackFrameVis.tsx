@@ -24,18 +24,18 @@ export class StackFrameVis extends CVisible {
     const byteRows: MemoryRow[] = [];
 
     for (let i = frame.stackPointer; i <= frame.basePointer + frame.sizeOfReturn - 3; i += 4) {
-      const newRow =
-        new MemoryRow(i, this.memory.memory.buffer.slice(i, i + 4), 0, 0, );
+      const newRow = new MemoryRow(i, this.memory.memory.buffer.slice(i, i + 4), 0, 0);
       byteRows.push(newRow);
     }
     this._width = CControlStashMemoryConfig.memoryRowWidth;
-    this._height = CControlStashMemoryConfig.memoryRowHeight * 2 + CControlStashMemoryConfig.memoryRowPadding;
+    this._height =
+      CControlStashMemoryConfig.memoryRowHeight * 2 + CControlStashMemoryConfig.memoryRowPadding;
     this.memorySegment = new MemorySegment(
       byteRows,
       0,
       CControlStashMemoryConfig.memoryRowHeight,
-      "#EFF6FF",
-    )
+      '#EFF6FF'
+    );
   }
 
   draw(key?: number): React.ReactNode {
