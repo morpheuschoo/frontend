@@ -1,35 +1,53 @@
 import React from 'react';
 import { Group } from 'react-konva';
+import { ArrayDataType, StackFrame } from 'src/ctowasm/dist';
 
-import { CConfig } from '../../config/CCSEMachineConfig';
 import { CseMachine } from '../../CseMachine';
-import { CVisible } from '../../CVisible';
-import { ArrayUnit } from './ArrayUnit';
+import { getVariableVis } from '../../utils';
+import { VariableVis } from './VariableVis';
 
-export class ArrayValue extends CVisible {
-  private readonly units: ArrayUnit[] = [];
+export class ArrayValue extends VariableVis {
+  private readonly units: VariableVis[] = [];
 
-  constructor(x: number, y: number, arrayData: number[]) {
-    super();
+  constructor(
+    address: bigint,
+    stackFrame: StackFrame,
+    dataType: ArrayDataType,
+    x: number,
+    y: number
+  ) {
+    super(address, dataType, x, y, 'ArrayValue');
 
     this._x = x;
     this._y = y;
+    let currentX = this.x();
 
-    for (let i = 0; i < arrayData.length; i++) {
-      const unitX = x + i * CConfig.DataUnitWidth;
-      const isFirst = i === 0;
-      const isLast = i === arrayData.length - 1;
-
-      const unit = new ArrayUnit(i, arrayData[i], unitX, y, isFirst, isLast);
-
-      this.units.push(unit);
+    if (dataType.numElements.type !== 'IntegerConstant') {
+      throw new Error('Not implemented');
     }
+    const numOfElements = dataType.numElements.value;
+    const elementSize = stackFrame.getTypeSize(dataType.elementDataType);
 
-    this._width = arrayData.length * CConfig.DataUnitWidth;
-    this._height = CConfig.FontSize + 2 * CConfig.TextPaddingX;
+    this._height = 0;
+    this._width = 0;
+
+    for (let i = 0; i < numOfElements; i++) {
+      const currentElement = getVariableVis(
+        BigInt(address + BigInt(i * elementSize)),
+        dataType.elementDataType,
+        stackFrame,
+        currentX,
+        this.y()
+      );
+
+      this._width += currentElement.width();
+      this._height = Math.max(this._height, currentElement.height());
+      currentX += currentElement.width();
+      this.units.push(currentElement);
+    }
   }
 
-  getUnit(index: number): ArrayUnit | undefined {
+  getUnit(index: number): VariableVis {
     return this.units[index];
   }
 

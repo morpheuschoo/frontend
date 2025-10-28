@@ -1,4 +1,27 @@
+import { DataType, StackFrame, StructSelfPointer } from 'src/ctowasm/dist';
+
+import { ArrayValue } from './components/ui/ArrayValue';
+import { PrimitiveVariable } from './components/ui/PrimitiveVariable';
+import { StructValue } from './components/ui/StructValue';
 import { CVisible } from './CVisible';
+
+export function getVariableVis(
+  address: bigint,
+  dataType: DataType | StructSelfPointer,
+  stackFrame: StackFrame,
+  x: number,
+  y: number
+) {
+  if (dataType.type === 'primary') {
+    return new PrimitiveVariable(address, stackFrame, dataType, x, y);
+  } else if (dataType.type === 'array') {
+    return new ArrayValue(address, stackFrame, dataType, x, y);
+  } else if (dataType.type === 'struct') {
+    return new StructValue(address, dataType, stackFrame, x, y);
+  } else {
+    throw new Error('NOT SUPPORTED BRO');
+  }
+}
 
 /**
  * Mutates the provided `CVisible` collection by setting each element's horizontal position

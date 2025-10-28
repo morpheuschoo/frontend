@@ -4,7 +4,6 @@ import { Memory as CMemory, StackFrame } from 'src/ctowasm/dist';
 
 import { defaultTextColor } from '../../../CseMachineUtils';
 import { CControlStashMemoryConfig } from '../../config/CControlStashMemoryConfig';
-import { CConfig } from '../../config/CCSEMachineConfig';
 import { CseMachine } from '../../CseMachine';
 import { CVisible } from '../../CVisible';
 import { DataSegmentVis } from '../dataSegment/DataSegmentVis';

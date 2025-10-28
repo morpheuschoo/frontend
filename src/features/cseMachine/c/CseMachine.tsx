@@ -47,7 +47,7 @@ export class CseMachine {
     CseMachine.stash = new Stash(
       context.stash,
       CControlStashMemoryConfig.StashPosX,
-      CControlStashMemoryConfig.StashPosY,
+      CControlStashMemoryConfig.StashPosY
     );
     CseMachine.control = new Control(
       context.control,
@@ -58,10 +58,10 @@ export class CseMachine {
     CseMachine.environment = new Environment(
       context.stackFrames,
       CseMachine.control.x() + CseMachine.control.width() + CConfig.CanvasPaddingX,
-       CseMachine.stash.y() + CseMachine.stash.height() + CConfig.CanvasPaddingY
+      CseMachine.stash.y() + CseMachine.stash.height() + CConfig.CanvasPaddingY
     );
     CseMachine.memory = new Memory(
-      context.memory, 
+      context.memory,
       context.stackFrames,
       CseMachine.environment.x() + CseMachine.environment.width() + CConfig.CanvasPaddingX,
       CseMachine.stash.y() + CseMachine.stash.height() + CConfig.CanvasPaddingY

@@ -25,13 +25,8 @@ export class Stash extends CVisible {
     for (const stashItem of stash.getStack()) {
       const stashItemText = this.getStashItemString(stashItem);
       const stashItemStroke = defaultTextColor();
-      
-      const currStashItem = new StashItem(
-        stashItemX,
-        this.y(),
-        stashItemText,
-        stashItemStroke
-      );
+
+      const currStashItem = new StashItem(stashItemX, this.y(), stashItemText, stashItemStroke);
 
       this._stashItems.push(currStashItem);
       stashItemX += currStashItem.width();
