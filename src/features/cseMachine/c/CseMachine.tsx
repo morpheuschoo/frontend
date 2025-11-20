@@ -30,7 +30,7 @@ export class CseMachine {
   static control: Control | undefined;
   static stash: Stash | undefined;
   static memory: Memory | undefined;
-  static environment: Environment;
+  static environment: Environment | undefined;
   static functions: FunctionTable | undefined;
 
   static init(setVis: SetVis, setEditorHighlightedLines: (segments: [number, number][]) => void) {
@@ -39,9 +39,16 @@ export class CseMachine {
   }
 
   /** updates the visualization state in the SideContentCseMachine component based on
-   * the Java Slang context passed in */
+   * the C Slang context passed in */
   static drawCse(context: any) {
-    if (!this.setVis || !context.control) {
+    if (
+      !this.setVis ||
+      !context.control ||
+      !context.stash ||
+      !context.astRoot.functionTable ||
+      !context.stackFrames ||
+      !context.memory
+    ) {
       throw new Error('C CSE Machine not initialised');
     }
     CseMachine.stash = new Stash(
