@@ -24,13 +24,13 @@ export class MemorySegment extends CVisible {
     super();
     this.backgroundColour = backgroundColour;
 
-    const {components, totalHeight} = topToBottom<MemoryRow>(
+    const { components, totalHeight } = topToBottom<MemoryRow>(
       [...byteRows],
       CControlStashMemoryConfig.memoryRowPadding,
       0
-    )
+    );
 
-    this.byteRows = components
+    this.byteRows = components;
     this.byteRowsTotalHeight = totalHeight;
     this.byteRowsClipHeight = Math.min(
       totalHeight + (totalHeight > 0 ? CControlStashMemoryConfig.memoryRowPadding : 0),
@@ -58,8 +58,11 @@ export class MemorySegment extends CVisible {
       } else if (event.evt.deltaMode === 2) {
         unitConversion = CConfig.PageHeight;
       }
-      const maxScroll = this.byteRowsTotalHeight + CControlStashMemoryConfig.memoryRowPadding - this.byteRowsClipHeight;
-      this.scrollY += (event.evt.deltaY * unitConversion) * 0.1;
+      const maxScroll =
+        this.byteRowsTotalHeight +
+        CControlStashMemoryConfig.memoryRowPadding -
+        this.byteRowsClipHeight;
+      this.scrollY += event.evt.deltaY * unitConversion * 0.1;
 
       if (this.scrollY > maxScroll) {
         this.scrollY = maxScroll;
@@ -70,24 +73,21 @@ export class MemorySegment extends CVisible {
       group.y(-this.scrollY);
       group.getLayer()?.batchDraw();
     }
-  }
+  };
 
   draw(): React.ReactNode {
     return (
-      <Group key={CseMachine.key++}
+      <Group
+        key={CseMachine.key++}
         clipX={0}
         clipY={0}
         x={this.x()}
         y={this.y()}
-        clipWidth={this.width()} 
+        clipWidth={this.width()}
         clipHeight={this.byteRowsClipHeight}
         onWheel={this.handleScroll}
       >
-        <Group 
-          key={CseMachine.key++} 
-          height={this.byteRowsTotalHeight}
-          ref={this.byteRowGroupRef}
-        >
+        <Group key={CseMachine.key++} height={this.byteRowsTotalHeight} ref={this.byteRowGroupRef}>
           <Rect
             {...ShapeDefaultProps}
             key={CseMachine.key++}
@@ -96,10 +96,10 @@ export class MemorySegment extends CVisible {
             fill={this.backgroundColour}
           />
           <Group key={CseMachine.key++} y={CControlStashMemoryConfig.memoryRowPadding}>
-            {this.byteRows.map((row) => row.draw())}
+            {this.byteRows.map(row => row.draw())}
           </Group>
         </Group>
       </Group>
-    )
+    );
   }
 }

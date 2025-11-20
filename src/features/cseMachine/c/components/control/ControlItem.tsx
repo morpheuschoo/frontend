@@ -25,6 +25,7 @@ export class ControlItem extends CVisible implements IHoverable {
   private readonly _tooltipRef: RefObject<any>;
 
   constructor(
+    x: number,
     y: number,
 
     private readonly _text: string,
@@ -41,7 +42,7 @@ export class ControlItem extends CVisible implements IHoverable {
     super();
 
     // Position.
-    this._x = CControlStashMemoryConfig.ControlPosX;
+    this._x = x;
     this._y = y;
 
     // Text.

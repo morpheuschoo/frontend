@@ -12,8 +12,7 @@ export class Text extends CVisible {
     private readonly _text: string,
     private readonly _fontColour: string,
     x: number,
-    y: number,
-    
+    y: number
   ) {
     super();
 

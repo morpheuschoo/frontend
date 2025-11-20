@@ -33,7 +33,7 @@ export const CConfig = Object.freeze({
   DataHitStrokeWidth: 5,
 
   TextPaddingX: 10,
-  TextPaddingY: 30,
+  TextPaddingY: 10,
   TextMargin: 5,
   TextMinWidth: 30,
   FontFamily: 'monospace, monospace',

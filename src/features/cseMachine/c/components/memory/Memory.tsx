@@ -4,7 +4,6 @@ import { Memory as CMemory, StackFrame } from 'src/ctowasm/dist';
 
 import { defaultTextColor } from '../../../CseMachineUtils';
 import { CControlStashMemoryConfig } from '../../config/CControlStashMemoryConfig';
-import { CConfig } from '../../config/CCSEMachineConfig';
 import { CseMachine } from '../../CseMachine';
 import { CVisible } from '../../CVisible';
 import { DataSegmentVis } from '../dataSegment/DataSegmentVis';
@@ -31,29 +30,16 @@ export class Memory extends CVisible {
   private heap: HeapVis;
   private dataSegment: DataSegmentVis;
 
-  constructor(memory: CMemory, frames: StackFrame[]) {
+  constructor(memory: CMemory, frames: StackFrame[], x: number, y: number) {
     super();
     this.memory = memory;
 
-    this._x =
-      CControlStashMemoryConfig.ControlPosX +
-      CControlStashMemoryConfig.ControlItemWidth +
-      2 * CConfig.CanvasPaddingX +
-      CConfig.FrameMaxWidth;
-
-    this._y =
-      CControlStashMemoryConfig.StashPosY +
-      CControlStashMemoryConfig.StashItemHeight +
-      2 * CConfig.CanvasPaddingY;
+    this._x = x;
+    this._y = y;
 
     this._width = CControlStashMemoryConfig.memoryRowWidth;
 
-    const {
-      dataSegmentSizeInBytes,
-      stackPointer,
-      basePointer,
-      heapPointer
-    } = memory.getPointers();
+    const { dataSegmentSizeInBytes, stackPointer, basePointer, heapPointer } = memory.getPointers();
 
     this.dataSegmentSizeInBytes = dataSegmentSizeInBytes;
     this.stackPointer = stackPointer;
@@ -64,10 +50,12 @@ export class Memory extends CVisible {
     this.heap = new HeapVis(
       this.memory.memory.buffer.slice(this.dataSegmentSizeInBytes + 4, this.heapPointer),
       this.dataSegmentSizeInBytes + 4,
-      this.heapPointer - 1,
-    )
-    this.dataSegment = new DataSegmentVis(this.memory.memory.buffer.slice(0, this.dataSegmentSizeInBytes));
-  
+      this.heapPointer - 1
+    );
+    this.dataSegment = new DataSegmentVis(
+      this.memory.memory.buffer.slice(0, this.dataSegmentSizeInBytes)
+    );
+
     // Set all 3 segments on top of each other
     this.dataSegment.setX(this.x());
     this.dataSegment.setY(this.y());

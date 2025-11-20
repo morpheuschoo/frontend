@@ -4,7 +4,7 @@ export class BindingDimensions {
     readonly y: number,
     readonly width: number,
     readonly height: number,
-    readonly additionalBendDistance: number,
+    readonly additionalBendDistance: number
   ) {}
 
   get endX(): number {

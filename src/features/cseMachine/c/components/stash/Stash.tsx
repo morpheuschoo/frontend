@@ -13,25 +13,20 @@ import { StashItem } from './StashItem';
 export class Stash extends CVisible {
   private readonly _stashItems: StashItem[] = [];
 
-  constructor(stash: CStash) {
+  constructor(stash: CStash, x: number, y: number) {
     super();
 
     // Position.
-    this._x = CControlStashMemoryConfig.StashPosX;
-    this._y = CControlStashMemoryConfig.StashPosY;
+    this._x = x;
+    this._y = y;
 
     // Create each StashItem.
     let stashItemX: number = this._x;
     for (const stashItem of stash.getStack()) {
       const stashItemText = this.getStashItemString(stashItem);
       const stashItemStroke = defaultTextColor();
-      //   const stashItemReference = this.getStashItemRef(stashItem);
-      const currStashItem = new StashItem(
-        stashItemX,
-        stashItemText,
-        stashItemStroke
-        // stashItemReference
-      );
+
+      const currStashItem = new StashItem(stashItemX, this.y(), stashItemText, stashItemStroke);
 
       this._stashItems.push(currStashItem);
       stashItemX += currStashItem.width();
