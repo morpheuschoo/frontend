@@ -49,6 +49,7 @@ export class CseMachine {
       !context.stackFrames ||
       !context.memory
     ) {
+      console.log("FUKK")
       throw new Error('C CSE Machine not initialised');
     }
     CseMachine.stash = new Stash(

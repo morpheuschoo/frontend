@@ -36,13 +36,12 @@ export class Control extends CVisible {
 
       const controlItemTooltip = this.getControlItemTooltip(controlItem);
 
-      const node = !control.isInstruction(controlItem) ? controlItem : controlItem;
       const highlightOnHover = () => {
         let start = -1;
         let end = -1;
-        if (node.position) {
-          start = node.position.start.line - 1;
-          end = node.position.end.line - 1;
+        if (controlItem.position) {
+          start = controlItem.position.start.line - 1;
+          end = controlItem.position.end.line - 1;
         }
         CseMachine.setEditorHighlightedLines([[start, end]]);
       };
