@@ -6,9 +6,7 @@ import { defaultTextColor } from '../../../CseMachineUtils';
 import { CControlStashMemoryConfig } from '../../config/CControlStashMemoryConfig';
 import { CseMachine } from '../../CseMachine';
 import { CVisible } from '../../CVisible';
-// import { Method } from './Method';
 import { StashItem } from './StashItem';
-// import { Variable } from './Variable';
 
 export class Stash extends CVisible {
   private readonly _stashItems: StashItem[] = [];
@@ -64,33 +62,4 @@ export class Stash extends CVisible {
         return `0x${stashItem.value.toString(16).padStart(2, '0').toUpperCase()}`;
     }
   };
-
-  //   private getStashItemRef = (stashItem: ECE.StashItem) => {
-  //     return stashItem.kind === ECE.StructType.CLOSURE
-  //       ? CseMachine.environment &&
-  //           (CseMachine.environment.classes
-  //             .flatMap(c => c.bindings)
-  //             .find(b => b.value instanceof Method && b.value.method === stashItem)?.value as Method)
-  //       : stashItem.kind === ECE.StructType.VARIABLE
-  //         ? CseMachine.environment &&
-  //           ((CseMachine.environment.frames
-  //             .flatMap(c => c.bindings)
-  //             .find(b => b.value instanceof Variable && b.value.variable === stashItem)
-  //             ?.value as Variable) ||
-  //             (CseMachine.environment.classes
-  //               .flatMap(c => c.bindings)
-  //               .find(b => b.value instanceof Variable && b.value.variable === stashItem)
-  //               ?.value as Variable) ||
-  //             (CseMachine.environment.objects
-  //               .flatMap(o => o.bindings)
-  //               .find(b => b.value instanceof Variable && b.value.variable === stashItem)
-  //               ?.value as Variable))
-  //         : stashItem.kind === ECE.StructType.CLASS
-  //           ? CseMachine.environment &&
-  //             CseMachine.environment.classes.find(c => c.frame === stashItem.frame)
-  //           : stashItem.kind === ECE.StructType.OBJECT
-  //             ? CseMachine.environment &&
-  //               CseMachine.environment.objects.find(o => o.frame === stashItem.frame)
-  //             : undefined;
-  //   };
 }

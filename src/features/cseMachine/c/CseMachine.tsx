@@ -41,7 +41,14 @@ export class CseMachine {
   /** updates the visualization state in the SideContentCseMachine component based on
    * the Java Slang context passed in */
   static drawCse(context: any) {
-    if (!this.setVis || !context.control) {
+    if (
+      !this.setVis ||
+      !context.stash ||
+      !context.control ||
+      !context.astRoot ||
+      !context.stackFrames ||
+      !context.memory
+    ) {
       throw new Error('C CSE Machine not initialised');
     }
     CseMachine.stash = new Stash(

@@ -6,25 +6,18 @@ import {
   Text as KonvaText
 } from 'react-konva';
 
-import { defaultTextColor, getTextWidth } from '../../../CseMachineUtils';
+import { getTextWidth } from '../../../CseMachineUtils';
 import { CControlStashMemoryConfig } from '../../config/CControlStashMemoryConfig';
-import { ShapeDefaultProps } from '../../config/CCSEMachineConfig';
+import { defaultTextProps, ShapeDefaultProps } from '../../config/CCSEMachineConfig';
 import { CseMachine } from '../../CseMachine';
 import { CVisible } from '../../CVisible';
-// import { Arrow } from './Arrow';
-// import { Frame } from './Frame';
-// import { Method } from './Method';
-// import { Variable } from './Variable';
 
 export class StashItem extends CVisible {
-  //   private readonly _arrow: Arrow | undefined;
-
   constructor(
     x: number,
     y: number,
     private readonly _text: string,
     private readonly _stroke: string
-    // reference?: Method | Frame | Variable
   ) {
     super();
 
@@ -37,34 +30,9 @@ export class StashItem extends CVisible {
       CControlStashMemoryConfig.StashItemHeight +
       CControlStashMemoryConfig.StashItemTextPadding * 2;
     this._width = CControlStashMemoryConfig.StashItemTextPadding * 2 + getTextWidth(this._text);
-
-    // Arrow
-    // if (reference) {
-    //   const toY =
-    //     reference instanceof Frame
-    //       ? reference.y() + reference.name.height()
-    //       : reference instanceof Method
-    //         ? reference.y()
-    //         : reference.y() + reference.type.height();
-    //   this._arrow = new Arrow(
-    //     this._x + this._width / 2,
-    //     this._y + this._height,
-    //     reference.x(),
-    //     toY
-    //   );
-    // }
   }
 
   draw(): React.ReactNode {
-    const textProps = {
-      fill: defaultTextColor(),
-      padding: CControlStashMemoryConfig.StashItemTextPadding,
-      fontFamily: CControlStashMemoryConfig.FontFamily,
-      fontSize: CControlStashMemoryConfig.FontSize,
-      fontStyle: CControlStashMemoryConfig.FontStyle,
-      fontVariant: CControlStashMemoryConfig.FontVariant
-    };
-
     const tagProps = {
       stroke: this._stroke,
       cornerRadius: CControlStashMemoryConfig.StashItemCornerRadius
@@ -72,19 +40,15 @@ export class StashItem extends CVisible {
 
     return (
       <KonvaGroup key={CseMachine.key++}>
-        {/* Text */}
         <KonvaLabel x={this.x()} y={this.y()} key={CseMachine.key++}>
           <KonvaTag {...ShapeDefaultProps} {...tagProps} key={CseMachine.key++} />
           <KonvaText
             {...ShapeDefaultProps}
-            {...textProps}
+            {...defaultTextProps}
             text={this._text}
             key={CseMachine.key++}
           />
         </KonvaLabel>
-
-        {/* Arrow */}
-        {/* {this._arrow?.draw()} */}
       </KonvaGroup>
     );
   }

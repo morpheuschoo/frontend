@@ -1,3 +1,4 @@
+/** Contains configuration information for the components in the visulization **/
 export const CControlStashMemoryConfig = Object.freeze({
   ControlPosX: 20,
   ControlPosY: 5,

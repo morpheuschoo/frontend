@@ -1,3 +1,6 @@
+import { defaultTextColor } from "../../CseMachineUtils";
+import { CControlStashMemoryConfig } from "./CControlStashMemoryConfig";
+
 /** configs for dimensions */
 export const CConfig = Object.freeze({
   CanvasMinHeight: 800,
@@ -87,6 +90,15 @@ export const CConfig = Object.freeze({
   GlobalFrameDefaultText: ':::pre-declared names::',
   GlobalEnvId: '-1'
 });
+
+export const defaultTextProps = {
+  fill: defaultTextColor(),
+  padding: CControlStashMemoryConfig.StashItemTextPadding,
+  fontFamily: CControlStashMemoryConfig.FontFamily,
+  fontSize: CControlStashMemoryConfig.FontSize,
+  fontStyle: CControlStashMemoryConfig.FontStyle,
+  fontVariant: CControlStashMemoryConfig.FontVariant
+};
 
 export const ShapeDefaultProps = Object.freeze({
   preventDefault: false
