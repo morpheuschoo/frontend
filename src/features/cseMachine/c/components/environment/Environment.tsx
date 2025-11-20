@@ -1,18 +1,15 @@
 import { Group } from 'react-konva';
 import { StackFrame } from 'src/ctowasm/dist';
 
-import { Line } from '../../../java/components/Line';
-import { Obj } from '../../../java/components/Object';
 import { CConfig } from '../../config/CCSEMachineConfig';
 import { CseMachine } from '../../CseMachine';
 import { CVisible } from '../../CVisible';
 import { BindingDimensionMap } from '../ui/binding/BindingDimensionMap';
 import { Frame } from './Frame';
+import { Line } from '../ui/Line';
 
 export class Environment extends CVisible {
   private readonly _methodFrames: Frame[] = [];
-  private readonly _objects: Obj[] = [];
-  private readonly _classFrames: Frame[] = [];
   private readonly _lines: Line[] = [];
   private readonly bindingDimensionMap: BindingDimensionMap = new BindingDimensionMap();
 
@@ -26,7 +23,6 @@ export class Environment extends CVisible {
     // Create method frames.
     const methodFramesX: number = this.x();
     let methodFramesY: number = this.y();
-    let methodFramesWidth = Number(CConfig.FrameMinWidth);
 
     const reversedFrames = [...stackFrames].reverse();
     let parentFrame: Frame | undefined = undefined;
@@ -42,7 +38,6 @@ export class Environment extends CVisible {
       );
       this._methodFrames.push(newFrame);
       methodFramesY += newFrame.height() + CConfig.FramePaddingY;
-      methodFramesWidth = Math.max(methodFramesWidth, newFrame.width());
 
       if (parentFrame) {
         newFrame.setParent(parentFrame);
@@ -53,15 +48,6 @@ export class Environment extends CVisible {
 
     this._methodFrames.forEach(frame => frame.updateValues());
   }
-
-  get classes() {
-    return this._classFrames;
-  }
-
-  get objects() {
-    return this._objects.flatMap(obj => obj.frames);
-  }
-
   get frames() {
     return this._methodFrames;
   }
@@ -70,8 +56,6 @@ export class Environment extends CVisible {
     return (
       <Group key={CseMachine.key++}>
         {this._methodFrames.map(f => f.draw())}
-        {this._objects.flatMap(obj => obj.frames).map(f => f.draw())}
-        {this._classFrames.map(f => f.draw())}
         {this._lines.map(f => f.draw())}
       </Group>
     );

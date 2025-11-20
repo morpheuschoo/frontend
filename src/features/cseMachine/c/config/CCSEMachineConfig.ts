@@ -1,5 +1,5 @@
-import { defaultTextColor } from "../../CseMachineUtils";
-import { CControlStashMemoryConfig } from "./CControlStashMemoryConfig";
+import { defaultTextColor } from '../../CseMachineUtils';
+import { CControlStashMemoryConfig } from './CControlStashMemoryConfig';
 
 /** configs for dimensions */
 export const CConfig = Object.freeze({

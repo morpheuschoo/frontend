@@ -69,13 +69,13 @@ export class Frame extends CVisible implements IHoverable {
     }
 
     // Set x of Method aft knowing frame width.
-    this.bindings
-      .filter(b => b.value instanceof Method)
-      .forEach(b => {
-        (b.value as Method).setX(this._x + this._width + CConfig.FramePaddingX);
-        b.setArrowToX(this._x + this._width + CConfig.FramePaddingX);
-      });
-
+    // this.bindings
+    //   .filter(b => b.value instanceof Method)
+    //   .forEach(b => {
+    //     (b.value as Method).setX(this._x + this._width + CConfig.FramePaddingX);
+    //     b.setArrowToX(this._x + this._width + CConfig.FramePaddingX);
+    //   });
+    //
     this.tooltipRef = React.createRef();
   }
 

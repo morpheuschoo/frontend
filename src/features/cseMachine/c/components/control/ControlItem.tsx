@@ -17,11 +17,8 @@ import {
 import { CControlStashMemoryConfig } from '../../config/CControlStashMemoryConfig';
 import { CseMachine } from '../../CseMachine';
 import { CVisible } from '../../CVisible';
-// import { Arrow } from './Arrow';
-// import { Frame } from './Frame';
 
 export class ControlItem extends CVisible implements IHoverable {
-  // private readonly _arrow: Arrow | undefined;
   private readonly _tooltipRef: RefObject<any>;
 
   constructor(
@@ -30,12 +27,8 @@ export class ControlItem extends CVisible implements IHoverable {
 
     private readonly _text: string,
     private readonly _stroke: string,
-
-    // reference: Frame | undefined,
-
-    // reference: undefined,
-
     private readonly _tooltip: string,
+
     private readonly highlightOnHover: () => void,
     private readonly unhighlightOnHover: () => void
   ) {
@@ -60,16 +53,6 @@ export class ControlItem extends CVisible implements IHoverable {
       getTextHeight(this._text, CControlStashMemoryConfig.ControlMaxTextWidth) +
       CControlStashMemoryConfig.ControlItemTextPadding * 2;
     this._width = CControlStashMemoryConfig.ControlItemWidth;
-
-    // Arrow
-    // if (reference) {
-    //   this._arrow = new Arrow(
-    //     this._x + this._width,
-    //     this._y + this._height / 2,
-    //     reference.x(),
-    //     reference.y() + reference.height() / 2 + reference.name.height()
-    //   );
-    // }
   }
 
   private isCurrentItem = (): boolean => {
@@ -151,9 +134,6 @@ export class ControlItem extends CVisible implements IHoverable {
             key={CseMachine.key++}
           />
         </Label>
-
-        {/* Arrow */}
-        {/* {this._arrow?.draw()} */}
       </React.Fragment>
     );
   }

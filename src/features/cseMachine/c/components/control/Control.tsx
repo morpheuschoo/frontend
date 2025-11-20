@@ -27,7 +27,7 @@ export class Control extends CVisible {
     // Create each ControlItem.
     let controlItemY: number = this._y;
     control.getStack().forEach((controlItem: CControlItem, index: number) => {
-      let controlItemText = controlItemToString(controlItem)
+      const controlItemText = controlItemToString(controlItem);
 
       const controlItemStroke =
         index === control.getStack().length - 1 ? defaultActiveColor() : defaultStrokeColor();
@@ -59,8 +59,11 @@ export class Control extends CVisible {
       controlItemY += currControlItem.height();
     });
 
-    this._height = this._controlItems.reduce<integer>((prev, current) => prev + current.height(), 0)
-    this._width = this._controlItems.reduce<integer>((prev, current) => Math.max(prev, current.width()), 0)
+    this._height = this._controlItems.reduce<number>((prev, current) => prev + current.height(), 0);
+    this._width = this._controlItems.reduce<number>(
+      (prev, current) => Math.max(prev, current.width()),
+      0
+    );
   }
 
   draw(): React.ReactNode {
