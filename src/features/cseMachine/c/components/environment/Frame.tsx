@@ -64,7 +64,6 @@ export class Frame extends CVisible implements IHoverable {
       );
       this.bindings.push(currBinding);
       bindingY += currBinding.height() + CConfig.FramePaddingY;
-      console.log(this._width, currBinding.width() + 2 * CConfig.FramePaddingX, 'HERE BROO');
       this._width = Math.max(this._width, currBinding.width() + 2 * CConfig.FramePaddingX);
       this._height += currBinding.height() + CConfig.FramePaddingY;
     }
