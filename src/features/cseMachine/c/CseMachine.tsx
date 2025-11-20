@@ -1,6 +1,6 @@
 import { KonvaEventObject } from 'konva/lib/Node';
 import React, { RefObject } from 'react';
-import { Group, Layer, Rect, Stage } from 'react-konva';
+import { Layer, Rect, Stage } from 'react-konva';
 import { FunctionTable } from 'src/ctowasm/dist';
 import { Control } from 'src/features/cseMachine/c/components/control/Control';
 
