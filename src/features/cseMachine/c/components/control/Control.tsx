@@ -6,7 +6,6 @@ import {
 } from 'src/ctowasm/dist';
 
 import { defaultActiveColor, defaultStrokeColor } from '../../../CseMachineUtils';
-import { CControlStashMemoryConfig } from '../../config/CControlStashMemoryConfig';
 import { CseMachine } from '../../CseMachine';
 import { CVisible } from '../../CVisible';
 import { ControlItem } from './ControlItem';
@@ -28,8 +27,7 @@ export class Control extends CVisible {
     // Create each ControlItem.
     let controlItemY: number = this._y;
     control.getStack().forEach((controlItem: CControlItem, index: number) => {
-      let controlItemText = '';
-      controlItemText = controlItemToString(controlItem);
+      let controlItemText = controlItemToString(controlItem)
 
       const controlItemStroke =
         index === control.getStack().length - 1 ? defaultActiveColor() : defaultStrokeColor();
@@ -60,8 +58,9 @@ export class Control extends CVisible {
       this._controlItems.push(currControlItem);
       controlItemY += currControlItem.height();
     });
-    this._height = controlItemY - this._y;
-    this._width = CControlStashMemoryConfig.ControlItemWidth;
+
+    this._height = this._controlItems.reduce<integer>((prev, current) => prev + current.height(), 0)
+    this._width = this._controlItems.reduce<integer>((prev, current) => Math.max(prev, current.width()), 0)
   }
 
   draw(): React.ReactNode {
