@@ -106,7 +106,6 @@ export class Binding extends CVisible {
 
     this._height = Math.max(this._name.height(), this._value.height());
     this._width = this._name.width() + this._value.width();
-    console.log(name, this._name.width(), this._value.width(), 'FUK ME');
   }
 
   updateValue(

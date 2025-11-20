@@ -12,7 +12,7 @@ export function getVariableVis(
   x: number,
   y: number
 ) {
-  if (dataType.type === 'primary') {
+  if (dataType.type === 'primary' || dataType.type === 'pointer') {
     return new PrimitiveVariable(address, stackFrame, dataType, x, y);
   } else if (dataType.type === 'array') {
     return new ArrayValue(address, stackFrame, dataType, x, y);

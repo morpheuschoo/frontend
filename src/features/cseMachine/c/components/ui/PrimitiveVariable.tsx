@@ -2,7 +2,7 @@ import { Group, Rect } from 'react-konva';
 import { ScalarCDataType, ScalarDataType, StackFrame } from 'src/ctowasm/dist';
 
 import { defaultTextColor } from '../../../CseMachineUtils';
-import { CConfig, ShapeDefaultProps } from '../../config/CCSEMachineConfig';
+import { CConfig } from '../../config/CCSEMachineConfig';
 import { CseMachine } from '../../CseMachine';
 import { Text } from './Text';
 import { VariableVis } from './VariableVis';

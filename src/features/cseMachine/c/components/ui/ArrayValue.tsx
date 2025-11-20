@@ -22,6 +22,7 @@ export class ArrayValue extends VariableVis {
     this._y = y;
     let currentX = this.x();
 
+    //TODO: to add evaluation of numElements as expressions (e.g. 1 + 2, 3 + 4)
     if (dataType.numElements.type !== 'IntegerConstant') {
       throw new Error('Not implemented');
     }

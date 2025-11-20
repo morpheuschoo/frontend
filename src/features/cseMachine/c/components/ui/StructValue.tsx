@@ -2,7 +2,6 @@ import { Group, Rect } from 'react-konva';
 import { DataType, StackFrame, StructDataType, StructSelfPointer } from 'src/ctowasm/dist';
 
 import { defaultTextColor } from '../../../CseMachineUtils';
-import { CControlStashMemoryConfig } from '../../config/CControlStashMemoryConfig';
 import { CConfig } from '../../config/CCSEMachineConfig';
 import { CseMachine } from '../../CseMachine';
 import { getVariableVis } from '../../utils';
@@ -16,6 +15,7 @@ export class StructField extends VariableVis {
   constructor(
     name: string,
     address: bigint,
+    parentStruct: StructDataType,
     dataType: DataType | StructSelfPointer,
     stackFrame: StackFrame,
     x: number,
@@ -25,6 +25,7 @@ export class StructField extends VariableVis {
 
     const targetDataType: string =
       dataType.type == 'primary' ? dataType.primaryDataType : dataType.type;
+
     this._name = new Text(
       targetDataType + ' ' + name + CConfig.VariableColon,
       defaultTextColor(),
@@ -32,17 +33,16 @@ export class StructField extends VariableVis {
       this.y()
     );
 
-    if (dataType.type === 'struct self pointer') {
-      // TODO: Figour this out
-    } else {
-      this._variable = getVariableVis(
-        address,
-        dataType,
-        stackFrame,
-        this._name.x() + this._name.width(),
-        this.y()
-      );
-    }
+    const variableDataType: DataType = dataType.type === 'struct self pointer' ?
+      { type: "pointer", pointeeType: parentStruct } : dataType;
+
+    this._variable = getVariableVis(
+      address,
+      variableDataType,
+      stackFrame,
+      this._name.x() + this._name.width(),
+      this.y()
+    );
 
     // Align name to be vertically centered to variable;
     this._name.setY(this._variable.y() + this._variable.height() / 2 - this._name.height() / 2);
@@ -78,14 +78,10 @@ export class StructValue extends VariableVis {
     let currentY = CConfig.TextPaddingY;
     let currentAddress = address;
     for (const field of dataType.fields) {
-      if (field.dataType.type === 'struct self pointer') {
-        currentAddress += BigInt(4);
-        continue;
-      }
-
       const currentField = new StructField(
         field.tag,
         currentAddress,
+        dataType,
         field.dataType,
         stackFrame,
         0,
@@ -97,7 +93,12 @@ export class StructValue extends VariableVis {
       this._height += currentField.height() + CConfig.TextPaddingY;
 
       currentY += currentField.height() + CConfig.TextPaddingY;
-      currentAddress += BigInt(stackFrame.getTypeSize(field.dataType));
+
+      if (field.dataType.type === "struct self pointer") {
+        currentAddress += BigInt(4);
+      } else {
+        currentAddress += BigInt(stackFrame.getTypeSize(field.dataType));
+      }
     }
   }
 
