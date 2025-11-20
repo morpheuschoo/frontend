@@ -1,8 +1,8 @@
-import { Visible } from "../components/Visible";
+import { Visible } from '../components/Visible';
 
 export abstract class CVisible extends Visible {
   constructor() {
-    super()
+    super();
   }
 
   setX(x: number): void {

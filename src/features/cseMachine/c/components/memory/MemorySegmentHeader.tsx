@@ -1,20 +1,19 @@
-import React from "react";
-import { Group, Rect, Text } from "react-konva";
+import React from 'react';
+import { Group, Rect, Text } from 'react-konva';
 
-import { defaultTextColor } from "../../../CseMachineUtils";
-import { CControlStashMemoryConfig } from "../../config/CControlStashMemoryConfig";
-import { CConfig } from "../../config/CCSEMachineConfig";
-import { CseMachine } from "../../CseMachine";
-import { CVisible } from "../../CVisible";
+import { defaultTextColor } from '../../../CseMachineUtils';
+import { CControlStashMemoryConfig } from '../../config/CControlStashMemoryConfig';
+import { CConfig } from '../../config/CCSEMachineConfig';
+import { CseMachine } from '../../CseMachine';
+import { CVisible } from '../../CVisible';
 
 export class MemorySegmentHeader extends CVisible {
-  
   constructor(
-    private readonly _segmentName: string, 
-    private readonly _backgroundColour: string, 
+    private readonly _segmentName: string,
+    private readonly _backgroundColour: string,
     private readonly _textColour: string,
-    x: number, 
-    y: number, 
+    x: number,
+    y: number
   ) {
     super();
     this._x = x;
@@ -22,7 +21,7 @@ export class MemorySegmentHeader extends CVisible {
     this._width = CControlStashMemoryConfig.memoryRowWidth;
     this._height = CControlStashMemoryConfig.memoryRowHeight * 2;
   }
-  
+
   draw(key?: number): React.ReactNode {
     const textProps = {
       fill: defaultTextColor(),

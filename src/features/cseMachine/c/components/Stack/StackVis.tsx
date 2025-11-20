@@ -1,21 +1,21 @@
-import { Group, Rect } from "react-konva";
-import { Memory as CMemory } from "src/ctowasm/dist"
-import { StackFrame } from "src/ctowasm/dist";
+import { Group, Rect } from 'react-konva';
+import { Memory as CMemory } from 'src/ctowasm/dist';
+import { StackFrame } from 'src/ctowasm/dist';
 
-import { CControlStashMemoryConfig } from "../../config/CControlStashMemoryConfig";
-import { CConfig, ShapeDefaultProps } from "../../config/CCSEMachineConfig";
-import { CseMachine } from "../../CseMachine";
-import { CVisible } from "../../CVisible";
-import { topToBottom } from "../../utils";
-import { MemorySegmentHeader } from "../memory/MemorySegmentHeader";
-import { StackFrameVis } from "./StackFrameVis";
+import { CControlStashMemoryConfig } from '../../config/CControlStashMemoryConfig';
+import { CConfig, ShapeDefaultProps } from '../../config/CCSEMachineConfig';
+import { CseMachine } from '../../CseMachine';
+import { CVisible } from '../../CVisible';
+import { topToBottom } from '../../utils';
+import { MemorySegmentHeader } from '../memory/MemorySegmentHeader';
+import { StackFrameVis } from './StackFrameVis';
 
 export class StackVis extends CVisible {
   private readonly memory: CMemory;
   private readonly frames: StackFrameVis[] = [];
   private readonly header: MemorySegmentHeader;
 
-  private readonly SEGMENT_NAME: string = "Stack";
+  private readonly SEGMENT_NAME: string = 'Stack';
 
   constructor(memory: CMemory, frames: StackFrame[]) {
     super();
@@ -36,10 +36,12 @@ export class StackVis extends CVisible {
     this._width = CControlStashMemoryConfig.memoryRowWidth;
 
     // construct memory frames
-    this.frames = [...frames].filter((frame) => (frame.functionName !== "global")).map(frame => {
-      const newMemoryStackFrame = new StackFrameVis(0, 0, this.memory, frame);
-      return newMemoryStackFrame;
-    });
+    this.frames = [...frames]
+      .filter(frame => frame.functionName !== 'global')
+      .map(frame => {
+        const newMemoryStackFrame = new StackFrameVis(0, 0, this.memory, frame);
+        return newMemoryStackFrame;
+      });
 
     this.header = new MemorySegmentHeader(
       this.SEGMENT_NAME,
@@ -49,12 +51,14 @@ export class StackVis extends CVisible {
       0
     );
 
-    const { components, totalHeight } = topToBottom<StackFrameVis>([...this.frames], 0, this.header.height());
+    const { components, totalHeight } = topToBottom<StackFrameVis>(
+      [...this.frames],
+      0,
+      this.header.height()
+    );
     this.frames = components;
 
-    this._height =
-      this.header.height() +
-      totalHeight;
+    this._height = this.header.height() + totalHeight;
   }
 
   draw(): React.ReactNode {
